@@ -1,1 +1,9 @@
-<h1>Welcome!</h1>
+{% extends "base.html" %}
+
+{% block page_content%}
+<p> The local time is {{moment(current_time).format("LLL")}}</p>
+{%endblock%}
+
+<!-- Some notes:
+    1. "LLL" refers to the time zone and locale settings of the server, number
+        of L determines the verbosity-->
