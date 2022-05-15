@@ -1,7 +1,24 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf%}
 
 {% block page_content%}
+<div class="page-header", id="my-text-field">
+    <h1>Hello, {% if name %}{{name}}{% else %} Stranger{%endif%}</h1>
+</div>
+<form method="POST">
+    {{form.hidden_tag()}}
+    <!--hidden_tag() required to create CSRF attack protection-->
+    {{form.name.label}} {{form.name(id='my-text-field')}}
+    {{form.email.label}} {{form.email()}}
+    {{form.submit()}}
+    <!-- The submit method above generates a POST request to index with data equal
+    to value of form.name()-->
+</form>
+<!--replace the form above with {{wtf.quick_form(form)}} for better presentation-->
+
 <p> The local time is {{moment(current_time).format("LLL")}}</p>
+
+
 {%endblock%}
 
 <!-- Some notes:
