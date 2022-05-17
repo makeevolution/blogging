@@ -15,6 +15,7 @@
     to value of form.name()-->
 </form>
 <!--replace the form above with {{wtf.quick_form(form)}} for better presentation-->
+<!--currently validators won't work as expected, but with wtf.quick_form, they do-->
 
 <p> The local time is {{moment(current_time).format("LLL")}}</p>
 

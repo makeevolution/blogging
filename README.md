@@ -18,3 +18,8 @@ Notes
   to make a get request instead.
 - ```name``` is stored in ```session```, because as soon as the redirect is done 
   the form data is destroyed.
+
+- Use flash() function to flash messages to the user on certain
+  actions done. For example, if a connected client changes their
+  name, we can flash a message telling them they changed their name. This is shown in hello.py.
+- The base.html now also includes code to render the flash message.
