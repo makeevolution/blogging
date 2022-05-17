@@ -8,3 +8,13 @@ Notes
 - Each element in the web form is a field of the web form class, where the field
   equals an object inherited from ```wtforms```
 - Use ```validators``` to validate the inputs. See hello.py for more examples
+
+- The last request to the index method can be a POST request
+- This can be problematic, since if the user refreshes the page after the POST
+  request is sent (i.e. pressing submit button), the page will ask for confirmation
+  to re-sent the form, which causes duplicate form submission
+- Duplicate form submission is not desired
+- So it is good practice to do a <b>redirection</b>, by using the redirect function
+  to make a get request instead.
+- ```name``` is stored in ```session```, because as soon as the redirect is done 
+  the form data is destroyed.
