@@ -21,6 +21,11 @@ app.config["SQLALCHEMY_DATABASE_URI"]=\
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db = SQLAlchemy(app)
 
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role)
+# the above is so that whenever we do an instance of flask shell,
+# the User, Role and db will be imported automatically to the shell
 
 class User(db.Model):
     __tablename__ = 'users'
