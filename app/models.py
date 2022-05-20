@@ -17,6 +17,7 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy="dynamic")
+    test = db.Column(db.String(64))
     # Each element in users column is a User object.
     # backref='role' adds a new attribute in the User model
     # so an instance of User can access/set its associated role
