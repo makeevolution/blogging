@@ -1,6 +1,6 @@
 Notes
 ======
-- To run, start virtual env, then ```$env:FLASK_APP = "hello"``` and ```flask run```
+- To run, start virtual env, then ```$env:FLASK_APP = "flasky.py"``` and ```flask run```
 - add also ```$env:FLASK_ENV="development"```
 - This branch has a web form created using flask-wtf package
 - flask-wtf requires the app to have a secret key configured, to prevent against CSRF attacks
@@ -23,3 +23,5 @@ Notes
   actions done. For example, if a connected client changes their
   name, we can flash a message telling them they changed their name. This is shown in hello.py.
 - The base.html now also includes code to render the flash message.
+
+- In this commit, ```hello.py``` is changed to ```flasky.py```, and the application is refactored and is much neater. Use gitk to see which files changed and comments on it
