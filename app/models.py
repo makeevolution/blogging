@@ -2,8 +2,15 @@
 from msilib.schema import Font
 from flask import current_app
 from sqlalchemy import false
-from . import db
+from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+
+# This decorator is used to help the login manager
+# to get info about the logged-in user.
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(id = int(user_id))
 
 class Permission:
     FOLLOW = 1
@@ -15,7 +22,8 @@ class Permission:
     # permissions a unique value (the sum is always unique).
     # This is also so that the bitwise comparison in has_permission() in Role functions properly.
 
-class User(db.Model):
+# UserMixin is from flask-login, which has properties and methods related to user authentication
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
