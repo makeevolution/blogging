@@ -30,7 +30,8 @@ class User(db.Model):
         return '<User %r>' % self.username
 
     def __init__(self, **kwargs):
-        # Initialize the role of the user.
+        # Initialize the role of the user. Remember self.role attribute is defined 
+        # in Role class through backref.
         # Interrogate the Base classes first, and if self.role is still
         # not defined, define it here.
         super(User,self).__init__(**kwargs)
@@ -39,6 +40,12 @@ class User(db.Model):
                 self.role = Role.query.filter_by(name="Administrator").first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+    
+    def can(self, permission):
+        return self.role is not None and self.role.has_permission(permission)
+    def is_administrator(self):
+        return self.can(Permission.ADMIN)
+    
 
 class Role(db.Model):
     __tablename__ = 'roles'
