@@ -10,7 +10,8 @@ class Permission:
     MODERATE = 8
     ADMIN = 16
     # The permissions are in powers of 2 so we can have permissions to be combined by addition, while giving each possible combination of
-    # permissions a unique value (the sum is always unique)
+    # permissions a unique value (the sum is always unique).
+    # This is also so that the bitwise comparison in has_permission() in Role functions properly.
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -54,7 +55,10 @@ class Role(db.Model):
     # The following defines methods to edit permission    
     def has_permission(self, perm):
         return self.permissions & perm == perm
-        # Bitwise operator & is used here. 
+        # Bitwise operator & is used here.
+        # example: if self.permissions is 5 and perm is 1
+        # then, 1 & 5 is 1, and 1 == 1 is True
+        # To try out, run flask run and r = Role(name='User), and use r to try the permission functions
 
     def add_permission(self, perm):
         if not self.has_permission(perm):
@@ -67,6 +71,25 @@ class Role(db.Model):
     def reset_permissions(self):
         self.permissions = 0
     
-    #@staticmethod
-    #def insert_role
-
+    # Create roles in the database (i.e. User, Moderator, Administrator) with their respective permissions
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
+            'Moderator': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE, Permission.MODERATE],
+            'Administrator': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE, Permission.MODERATE, Permission.ADMIN]
+        }
+        default_role = 'User'  
+        for r in roles:
+            # Try to get the role row in the Role table in the database with name = r
+            # If it doesn't exist yet in the database, create the role
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            # If it does exist, update the corresponding permissions for this role with what we have in roles
+            role.reset_permissions()
+            for perm in roles[r]:
+                role.add_permission(perm)
+            role.default = (True if role.name == default_role else False)
+            db.session.add(role)
+            db.session.commit()
