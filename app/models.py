@@ -3,6 +3,15 @@ from msilib.schema import Font
 from sqlalchemy import false
 from . import db
 
+class Permission:
+    FOLLOW = 1
+    COMMENT = 2
+    WRITE = 4
+    MODERATE = 8
+    ADMIN = 16
+    # The permissions are in powers of 2 so we can have permissions to be combined by addition, while giving each possible combination of
+    # permissions a unique value (the sum is always unique)
+
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -23,7 +32,7 @@ class Role(db.Model):
     users = db.relationship('User', backref='role', lazy="dynamic")
     
     def __init__(self, **kwargs):
-        super(Role,self).__init__(*kwargs)
+        super(Role,self).__init__(**kwargs)
         if self.permissions is None:
             self.permissions = 0
     # Each element in users column is a User object.
@@ -45,24 +54,19 @@ class Role(db.Model):
     # The following defines methods to edit permission    
     def has_permission(self, perm):
         return self.permissions & perm == perm
-        # Bitwise operator & is used here.
+        # Bitwise operator & is used here. 
 
     def add_permission(self, perm):
-        if self.has_permission(perm):
+        if not self.has_permission(perm):
             self.permissions += perm
     
     def remove_permission(self, perm):
         if self.has_permission(perm):
             self.permissions -= perm
 
-    def reset_permission(self):
+    def reset_permissions(self):
         self.permissions = 0
+    
+    #@staticmethod
+    #def insert_role
 
-class Permission:
-    FOLLOW = 1
-    COMMENT = 2
-    WRITE = 4
-    MODERATE = 8
-    ADMIN = 16
-    # The permissions are in powers of 2 so we can have permissions to be combined by addition, while giving each possible combination of
-    # permissions a unique value (the sum is always unique)
