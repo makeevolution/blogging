@@ -3,7 +3,7 @@ from msilib.schema import Font
 from flask import current_app
 from sqlalchemy import false
 from . import db
-import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Permission:
     FOLLOW = 1
@@ -46,8 +46,19 @@ class User(db.Model):
     def is_administrator(self):
         return self.can(Permission.ADMIN)
     
+    @property
+    def password(self):
+        raise AttributeError("password is not accessible")
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+        # Once a password is hashed, it can never be recovered
+    
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Role(db.Model):
+
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
@@ -116,3 +127,4 @@ class Role(db.Model):
             role.default = (True if role.name == default_role else False)
             db.session.add(role)
             db.session.commit()
+

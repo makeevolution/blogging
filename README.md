@@ -35,3 +35,7 @@ Notes
 - After adding this change, run ```flask db migrate``` to create a migration script
 - The migrations folder now has a migration script with upgrade() and downgrade() functions, signifying the changes
 - Add the migration script to git, then run ```flask db upgrade``` to upgrade the database
+
+- In this commit, user authentication functionality is added
+- Uses ```Flask-Login``` (management of user sessions for logged-in users), ```Werkzeug``` (password hashing and verification) and ```itsdangerous``` (token generation and verification).
+   
