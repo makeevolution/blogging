@@ -1,4 +1,6 @@
 # the import below imports db from __init__.py
+from msilib.schema import Font
+from sqlalchemy import false
 from . import db
 
 class User(db.Model):
@@ -16,8 +18,14 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default = False, index = True)
+    permissions = db.Column(db.Integer)
     users = db.relationship('User', backref='role', lazy="dynamic")
-    test = db.Column(db.String(64))
+    
+    def __init__(self, **kwargs):
+        super(Role,self).__init__(*kwargs)
+        if self.permissions is None:
+            self.permissions = 0
     # Each element in users column is a User object.
     # backref='role' adds a new attribute in the User model
     # so an instance of User can access/set its associated role
@@ -33,3 +41,28 @@ class Role(db.Model):
 
     def __repr__(self):
         return '<Role %r>' % self.name
+
+    # The following defines methods to edit permission    
+    def has_permission(self, perm):
+        return self.permissions & perm == perm
+        # Bitwise operator & is used here.
+
+    def add_permission(self, perm):
+        if self.has_permission(perm):
+            self.permissions += perm
+    
+    def remove_permission(self, perm):
+        if self.has_permission(perm):
+            self.permissions -= perm
+
+    def reset_permission(self):
+        self.permissions = 0
+
+class Permission:
+    FOLLOW = 1
+    COMMENT = 2
+    WRITE = 4
+    MODERATE = 8
+    ADMIN = 16
+    # The permissions are in powers of 2 so we can have permissions to be combined by addition, while giving each possible combination of
+    # permissions a unique value (the sum is always unique)
