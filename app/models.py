@@ -24,7 +24,9 @@ class User(db.Model):
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     # db.ForeignKey('roles.id') means the role_id gets its value from
-    # id column of roles table
+    # id column of roles table.
+    # More info on what index is: https://dataschool.com/sql-optimization/how-indexing-works/
+
 
     def __repr__(self):
         return '<User %r>' % self.username
