@@ -34,6 +34,12 @@
                 <li><a href="/">Home</a></li>
             </ul>
             <ul class = "nav navbar-nav navbar-right">
+                <!-- The current_user is provided by the flask login package in the background-->
+                <!-- The Jinja template invokes _get_user() function of flask login, which checks
+                if there is a user ID stored in the user session. If there is, it will invoke
+                the function with a user_loader decorator (our load_user function in models.py),
+                to get the user. Flask login then assigns to current_user the correct context variable
+                e.g. making is_authenticated = True, among other things. -->
                 {% if current_user.is_authenticated %}
                 <li><a href="{{url_for('auth.logout')}}">Log Out</a></li>
                 {% else %}
