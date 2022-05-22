@@ -1,4 +1,4 @@
-from flask_login import login_user
+from flask_login import login_required, login_user, logout_user
 from . import auth
 from flask import redirect, flash, render_template, url_for, request
 from .forms import LoginForm
@@ -13,12 +13,12 @@ def login():
         user = User.query.filter_by(email = form.email.data).first()
         if user is not None:
             # also create a flash message saying user or password is incorrect!
-            flash("user unknown!!")
+            flash("Username or password incorrect")
             return redirect(url_for('auth.login'))
         # Check if password input is correct
         if not User.verify_password(user, form.password.data):
             # also flash user or password incorrect
-            flash("wrong password!")
+            flash("Username or password incorrect")
             return redirect(url_for('auth.login'))
         # Log in the user using login_user function of flask login package
         # The user's is_authenticated attribute will be set to True
@@ -40,3 +40,11 @@ def login():
         return redirect(url_for(protectedPage))
 
     return render_template('auth/login.html', form = form)
+
+@auth.route('/logout')   
+@login_required
+def logout():
+    # Logout the user using flask login package's logout_user function
+    logout_user()
+    flash('Logged out successfully')
+    return redirect(url_for('main.index'))
