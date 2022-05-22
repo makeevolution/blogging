@@ -10,7 +10,7 @@ from flask_login import UserMixin
 # to get info about the logged-in user.
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(id = int(user_id))
+    return db.session.get(User, {"id": int(user_id)})
 
 class Permission:
     FOLLOW = 1

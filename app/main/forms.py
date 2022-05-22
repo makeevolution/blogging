@@ -3,6 +3,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Email
 
 # validator datarequired() ensures the field is not empty
+# Not used anymore from this commit forward
 class NameForm(FlaskForm):
     name = StringField("What is your name?", validators=[DataRequired()])
     email = StringField("Add your email: ", validators=[Email()])

@@ -11,7 +11,7 @@ def login():
     if form.validate_on_submit():
         # Get the user object of the user trying to log in 
         user = User.query.filter_by(email = form.email.data).first()
-        if user is not None:
+        if user is None:
             # also create a flash message saying user or password is incorrect!
             flash("Username or password incorrect")
             return redirect(url_for('auth.login'))
@@ -36,8 +36,7 @@ def login():
         protectedPage = request.args.get('next')
         if protectedPage is None or not next.startswith('/'):
             protectedPage = url_for("main.index")
-
-        return redirect(url_for(protectedPage))
+        return redirect(protectedPage)
 
     return render_template('auth/login.html', form = form)
 
