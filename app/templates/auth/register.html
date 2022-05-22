@@ -3,13 +3,7 @@
 
 {% block page_content %}
     <div class = "page-header">
-        <H1>Login</H1>
+        <H1>Register here</H1>
     </div>
     {{wtf.quick_form(form)}}
-    <p>
-        New user?
-        <a href="{{ url_for('auth.register') }}">
-            Register here
-        </a>
-    </p>
 {%endblock%}

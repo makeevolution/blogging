@@ -1,7 +1,9 @@
 from flask_login import login_required, login_user, logout_user
+
+from app.main.views import user
 from . import auth
 from flask import redirect, flash, render_template, url_for, request
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
 from .. import db
 from ..models import User
 
@@ -47,3 +49,18 @@ def logout():
     logout_user()
     flash('Logged out successfully')
     return redirect(url_for('main.index'))
+
+@auth.route('/register', methods=["GET","POST"])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        new_user = User()
+        new_user.username = form.username.data
+        new_user.password = form.password.data
+        new_user.email = form.email.data
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        flash("Registration successful, welcome!") 
+        return redirect(url_for("main.index"))
+    return render_template('auth/register.html', form=form)
