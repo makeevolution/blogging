@@ -1,4 +1,3 @@
-from types import NoneType
 from flask import current_app
 from sqlalchemy import false
 from . import db
@@ -18,10 +17,11 @@ def resetUserRoles():
         if user is None:
             continue
         if user.email ==  current_app.get("FLASKY_ADMIN"):
-            user.role = Role.query.filter_by(name="ADMINISTRATOR").first()
+            user.role = Role.query.filter_by(name="Administrator").first()
         else:
             user.role = Role.query.filter_by(default=True).first()
-
+        db.session.add(user)
+        db.session.commit()
     # For each user in the database
     # 
 # def addAttributeToUser(attribute: str, val):

@@ -121,7 +121,7 @@ class Role(db.Model):
         # Bitwise operator & is used here.
         # example: if self.permissions is 5 and perm is 1
         # then, 1 & 5 is 1, and 1 == 1 is True
-        # To try out, run flask run and r = Role(name='User), and use r to try the permission functions
+        # To try out, run flask shell and r = Role(name='User'), and use r to try the permission functions
 
     def add_permission(self, perm):
         if not self.has_permission(perm):
