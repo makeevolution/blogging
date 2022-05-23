@@ -1,4 +1,5 @@
 # the import below imports db from __init__.py
+import datetime
 from msilib.schema import Font
 from flask import current_app
 from sqlalchemy import false
@@ -31,6 +32,11 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
+    name = db.Column(db.String(64))
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())
+    member_since = db.Column(db.DateTime(), default = datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
     # db.ForeignKey('roles.id') means the role_id gets its value from
     # id column of roles table.
     # More info on what index is: https://dataschool.com/sql-optimization/how-indexing-works/
@@ -66,6 +72,12 @@ class User(UserMixin, db.Model):
     
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def ping(self):
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
+
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods

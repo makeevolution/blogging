@@ -1,4 +1,4 @@
-from flask_login import login_required, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 from app.main.views import user
 from . import auth
@@ -6,6 +6,16 @@ from flask import redirect, flash, render_template, url_for, request
 from .forms import LoginForm, RegistrationForm
 from .. import db
 from ..models import User
+
+# before_app_request is a decorator from flask, that makes before_request() function
+# below runs before each request to the app is handled
+
+@auth.before_app_request
+def before_request():
+    # current_user can also be an anonymous user!!! So need to check authentication
+    if current_user.is_authenticated:
+        current_user.ping()
+        
 
 @auth.route('/login', methods=["GET","POST"])
 def login():
@@ -64,3 +74,4 @@ def register():
         flash("Registration successful, welcome!") 
         return redirect(url_for("main.index"))
     return render_template('auth/register.html', form=form)
+
