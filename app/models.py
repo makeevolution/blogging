@@ -1,6 +1,5 @@
 # the import below imports db from __init__.py
-import datetime
-from msilib.schema import Font
+from datetime import datetime
 from flask import current_app
 from sqlalchemy import false
 from . import db, login_manager
