@@ -37,6 +37,7 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default = datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
+    avatar_hash = db.Column(db.String(32)) #store avatar hash because computing hash is expensive
     # db.ForeignKey('roles.id') means the role_id gets its value from
     # id column of roles table.
     # More info on what index is: https://dataschool.com/sql-optimization/how-indexing-works/
@@ -51,6 +52,8 @@ class User(UserMixin, db.Model):
         # Interrogate the Base classes first, and if self.role is still
         # not defined, define it here.
         super(User,self).__init__(**kwargs)
+        if self.email is not None and self.avatar_hash is None:
+            self.avatar_hash = self.gravatar_hash()
         if self.role is None:
             if(self.email == current_app.config["FLASKY_ADMIN"]):
                 self.role = Role.query.filter_by(name="Administrator").first()
@@ -80,8 +83,11 @@ class User(UserMixin, db.Model):
 
     def gravatar(self, size=100, default='retro', rating='g'):
         url = "https://www.gravatar.com/avatar"
-        hash = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        hash = self.avatar_hash or self.gravatar_hash()
         return f'{url}/{hash}?s={size}&d={default}&r={rating}'
+
+    def gravatar_hash(self):
+        return hashlib.md5(self.email.lower().encode('utf-8').hexdigest())
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
