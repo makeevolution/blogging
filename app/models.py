@@ -1,5 +1,6 @@
 # the import below imports db from __init__.py
 from datetime import datetime
+import hashlib
 from flask import current_app
 from sqlalchemy import false
 from . import db, login_manager
@@ -77,6 +78,10 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def gravatar(self, size=100, default='retro', rating='g'):
+        url = "https://www.gravatar.com/avatar"
+        hash = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'{url}/{hash}?s={size}&d={default}&r={rating}'
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
@@ -142,7 +147,7 @@ class Role(db.Model):
             'Moderator': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE, Permission.MODERATE],
             'Administrator': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE, Permission.MODERATE, Permission.ADMIN]
         }
-        default_role = 'User'  
+        default_role = 'User' 
         for r in roles:
             # Try to get the role row in the Role table in the database with name = r
             # If it doesn't exist yet in the database, create the role

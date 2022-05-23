@@ -14,6 +14,7 @@
 {{ super() }}
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 {% endblock %}
 
 
@@ -44,7 +45,8 @@
                 to get the user. Flask login then assigns to current_user the correct context variable
                 e.g. making is_authenticated = True, among other things. -->
                 {% if current_user.is_authenticated %}
-                <li><a href="{{url_for('auth.logout')}}">Log Out</a></li>
+                <li><a href="{{url_for('auth.logout')}}">
+                    <img src="{{ current_user.gravatar(size=18) }}" style="margin-right: 10px">Log Out</a></li>
                 {% else %}
                 <li><a href="{{url_for('auth.login')}}">Log In</a></li>
                 {%endif%}

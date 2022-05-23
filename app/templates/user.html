@@ -3,7 +3,9 @@
 {% block title %}Flasky - {{ user.username }}{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
+<!-- gravatar function is defined in models.py, under User-->
+<img class="ïmg-rounded profile-thumbnail" src="{{ user.gravatar(size=256) }}">
+<div class="profile-header">
     <h1>{{ user.username }}</h1>
     {% if user.name or user.location %}
     <p>
