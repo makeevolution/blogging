@@ -37,4 +37,6 @@ Notes
 
 - In this commit, user authentication functionality is added
 - Uses ```Flask-Login``` (management of user sessions for logged-in users), ```Werkzeug``` (password hashing and verification) and ```itsdangerous``` (token generation and verification).
-   
+  
+- In this commit, user permission logic is implemented based on the logged in user's role, to limit access to certain routes.
+

@@ -4,7 +4,7 @@ from flask import current_app
 from sqlalchemy import false
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import AnonymousUserMixin, UserMixin
 
 # This decorator is used to help the login manager
 # to get info about the logged-in user.
@@ -66,6 +66,15 @@ class User(UserMixin, db.Model):
     
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+# Flask-login has their own AnonymousUser class, but here we
+# override it with our own implementation, to also have can and is_admin methods
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+    def is_administrator(self):
+        return False
+login_manager.anonymous_user = AnonymousUser
 
 class Role(db.Model):
     __tablename__ = 'roles'

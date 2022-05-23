@@ -36,7 +36,7 @@ def login():
         # The next.startswith is there to prevent hackers from rerouting us to another website; it
         # ensures the value is always a relative path to our site. 
         protectedPage = request.args.get('next')
-        if protectedPage is None or not next.startswith('/'):
+        if protectedPage is None or not protectedPage.startswith('/'):
             protectedPage = url_for("main.index")
         return redirect(protectedPage)
 
