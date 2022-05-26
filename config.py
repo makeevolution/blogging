@@ -14,6 +14,7 @@ class Config:
     FLASKY_MAIL_SENDER = 'Flasky Admin <flasky@example.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN') or "aldohasibuan1@gmail.com"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FLASKY_POSTS_PER_PAGE = 5
 
     # This class can be used to allow the application to customize is configurations.
     # e.g. all the config above can optionally be set here, for example:

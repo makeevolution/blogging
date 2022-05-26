@@ -1,10 +1,9 @@
 from datetime import datetime
-from sqlite3 import Timestamp
-from flask import flash, render_template, session, redirect, url_for, abort
+from flask import current_app, flash, render_template, request, session, redirect, url_for, abort
 from flask_login import current_user, login_required
 # the below imports the blueprint called "main" from __init__.py
 from . import main
-from .forms import EditProfileAdminForm, EditProfileForm, NameForm, PostForm
+from .forms import EditProfileAdminForm, EditProfileForm, PostForm
 from .. import db
 from ..models import Permission, Role, User, Post
 from ..decorators import admin_required, permission_required
@@ -17,12 +16,22 @@ def index():
         db.session.add(post)
         db.session.commit()
         return redirect(url_for("main.index"))
+    page = request.args.get('page', 1, type=int)
+    # type=int is so that if 'page' is not an integer, the default value 1 is returned
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    )
+    # all() is now replaced with paginate() method.
+    # error_out sets what happens if page that is out of range is returned. If True, we go to 404 page,
+    # if false, it will return an empty list.
     # desc() orders the column entry in descending order
-    posts = db.session.query(Post).order_by(Post.timestamp.desc()).all()
+    posts = pagination.items
     return render_template("index.html",
                             current_time = datetime.utcnow(),
                             form = form,
-                            posts = posts)
+                            posts = posts,
+                            pagination = pagination)
 
 @main.route('/user/<username>')
 def user(username):
