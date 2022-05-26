@@ -1,16 +1,27 @@
 from datetime import datetime
+from sqlite3 import Timestamp
 from flask import flash, render_template, session, redirect, url_for, abort
 from flask_login import current_user, login_required
 # the below imports the blueprint called "main" from __init__.py
 from . import main
-from .forms import EditProfileAdminForm, EditProfileForm, NameForm
+from .forms import EditProfileAdminForm, EditProfileForm, NameForm, PostForm
 from .. import db
-from ..models import Permission, Role, User
+from ..models import Permission, Role, User, Post
 from ..decorators import admin_required, permission_required
 
-@main.route('/')
+@main.route('/', methods=["GET","POST"])
 def index():
-    return render_template("index.html", current_time = datetime.utcnow())
+    form = PostForm()
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
+        post = Post(body = form.text.data, author = current_user._get_current_object())
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for("main.index"))
+    posts = db.session.query(Post).order_by(Post.timestamp.desc()).all()
+    return render_template("index.html", 
+                            current_time = datetime.utcnow(), 
+                            form = form,
+                            posts = posts)
 
 @main.route('/user/<username>')
 def user(username):

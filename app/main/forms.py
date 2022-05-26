@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, BooleanField, SelectField
+from wtforms import StringField, SubmitField, BooleanField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length, Regexp, ValidationError
 from ..models import Role, User
 from .. import db
@@ -53,3 +53,7 @@ class EditProfileAdminForm(FlaskForm):
     def validate_username(self, field):
         if self.user.username != field.data and db.session.query(User).filter_by(username= field.data).first() is not None:
             raise ValidationError(f"Username {field.data} is already in use!")
+
+class PostForm(FlaskForm):
+    text = TextAreaField('What\'s on your mind?', validators=[DataRequired()])
+    submit = SubmitField('Submit')

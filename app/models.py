@@ -41,7 +41,9 @@ class User(UserMixin, db.Model):
     # db.ForeignKey('roles.id') means the role_id gets its value from
     # id column of roles table.
     # More info on what index is: https://dataschool.com/sql-optimization/how-indexing-works/
-
+    posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
+    # a db relationship to indicate one to many relationship i.e. one user can have
+    # many posts, but one post can only belong to one person.
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -87,7 +89,7 @@ class User(UserMixin, db.Model):
         return f'{url}/{hash}?s={size}&d={default}&r={rating}'
 
     def gravatar_hash(self):
-        return hashlib.md5(self.email.lower().encode('utf-8').hexdigest())
+        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
@@ -105,11 +107,9 @@ class Role(db.Model):
     default = db.Column(db.Boolean, default = False, index = True)
     permissions = db.Column(db.Integer)
     users = db.relationship('User', backref='role', lazy="dynamic")
-    
-    def __init__(self, **kwargs):
-        super(Role,self).__init__(**kwargs)
-        if self.permissions is None:
-            self.permissions = 0
+    # A db relationship is used to indicate a one to many relationship i.e.
+    # one role can have many users, but one user can only have one role
+
     # Each element in users column is a User object.
     # backref='role' adds a new attribute in the User model
     # so an instance of User can access/set its associated role
@@ -122,6 +122,10 @@ class Role(db.Model):
     # return the attribute, so we can apply filtering to it 
     # e.g. user_role.users.order_by(User.username).all() can also be done
     # like what we usually do for query to an class (e.g. Role.query.filter_by(role=user_role).all())
+    def __init__(self, **kwargs):
+        super(Role,self).__init__(**kwargs)
+        if self.permissions is None:
+            self.permissions = 0
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -167,4 +171,11 @@ class Role(db.Model):
             role.default = (True if role.name == default_role else False)
             db.session.add(role)
             db.session.commit()
+
+class Post(db.Model):
+    __tablename__ = "posts"
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
