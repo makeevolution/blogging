@@ -5,11 +5,13 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from config import config
 from flask_login import LoginManager
+from flask_pagedown import PageDown
 
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
+pagedown = PageDown()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login' # Set path to login page
                                         # Will automatically redirect user to this page
@@ -27,6 +29,7 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
+    pagedown.init_app(app)
     # Define the routes for the app using blueprint library of flask
     
     # Importing the blueprint main is put here, so that clients that only import create_app will also create the blueprint.

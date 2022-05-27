@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
+from sqlalchemy import desc
 from wtforms import StringField, SubmitField, BooleanField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length, Regexp, ValidationError
 from ..models import Role, User
+from flask_pagedown.fields import PageDownField
 from .. import db
 
 # validator datarequired() ensures the field is not empty
@@ -55,5 +57,8 @@ class EditProfileAdminForm(FlaskForm):
             raise ValidationError(f"Username {field.data} is already in use!")
 
 class PostForm(FlaskForm):
-    text = TextAreaField('What\'s on your mind?', validators=[DataRequired()])
+    text = PageDownField('What\'s on your mind?',
+                         validators=[DataRequired()],
+                         description="Markdown formatting is supported!")
+
     submit = SubmitField('Submit')
