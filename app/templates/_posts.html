@@ -27,6 +27,11 @@
                 {{ post.body }}
             {% endif %}
         </div>
+        <div>
+            <a href = "{{url_for('main.post', id = post.id) }}">
+                <span class="label label-default">Permalink</span> 
+            </a>
+        </div>
     </li>
     {% endfor %}
 <ul>

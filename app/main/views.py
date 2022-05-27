@@ -99,3 +99,9 @@ def for_admins_only():
 @permission_required(Permission.MODERATE)
 def for_moderators_only():
     return "For comment Moderators!"
+
+@main.route('/post/<int:id>')
+def post(id):
+    post = db.session.query(Post).get_or_404(id)
+    return render_template('post.html', posts = [post]) # Send as list since _posts.html expects a list!
+    
