@@ -31,6 +31,15 @@
             <a href = "{{url_for('main.post', id = post.id) }}">
                 <span class="label label-default">Permalink</span> 
             </a>
+            {% if (post.author == current_user) and (not current_user.can(Permission.ADMIN)) %}
+                <a href="{{url_for('main.edit_post', id = post.id) }}">
+                    <span class="label label-primary">Edit</span>
+                </a>
+            {% elif current_user.can(Permission.ADMIN) %}
+                <a href="{{url_for('main.edit_post', id = post.id) }}">
+                    <span class="label label-danger">Edit [Admin]</span>
+                </a>
+            {%endif%}
         </div>
     </li>
     {% endfor %}

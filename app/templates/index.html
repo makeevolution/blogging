@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf%}
 {% import "_macros.html" as macros %}
 
-<!--Use template macro provided by Flask-PageDown from their CDN-->
+<!--Use template macro provided by Flask-PageDown from their CDN, so user can use markdown-->
 {% block scripts %}
 {{ super() }}
 {{ pagedown.include_pagedown() }}

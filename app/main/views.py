@@ -104,4 +104,21 @@ def for_moderators_only():
 def post(id):
     post = db.session.query(Post).get_or_404(id)
     return render_template('post.html', posts = [post]) # Send as list since _posts.html expects a list!
-    
+
+@main.route('/edit/<int:id>', methods=["GET","POST"])
+def edit_post(id):
+    # first check if the person have edit permissions (only admin and the user himself)
+    # next get the post 
+    # next edit the post
+    # finally push
+    post = db.session.query(Post).get_or_404(id)
+    if (post.author != current_user) and (not current_user.can(Permission.ADMIN)):
+        abort(403)
+    form = PostForm()
+    form.text.data = post.body # Post to be edited is displayed first
+    if form.validate_on_submit():
+        post.body = form.text.data
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for("main.post", id = post.id))
+    return render_template("edit_post.html", form = form)

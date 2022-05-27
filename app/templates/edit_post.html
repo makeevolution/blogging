@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf%}
+
+{% block page_content %}
+    <div class = "page-header">
+        <H1>Edit Post</H1>
+    </div>
+    {{wtf.quick_form(form)}}
+{%endblock%}
+
+<!--Use template macro provided by Flask-PageDown from their CDN, so user can use markdown-->
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
