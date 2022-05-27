@@ -13,7 +13,20 @@
                {{ post.author.username }}
             </a>
         </div>
-        <div class = "post-body">{{ post.body }}</div>
+        <!-- The following div renders the posts.-->
+        <!-- The | safe skips the safety check by Jinja, since body_html is output of markdown that is already
+             checked and filtered by on_changed_body() method in Post class. This skip is needed since
+             Jinja escapes any html tags present as its safety measure. Since we have already checked this html,
+             this check by Jinja is not needed.-->
+        <!-- Otherwise, the post.body, which is in markdown, will be rendered automatically
+             to HTML by Jinja, with its own safety checks.-->
+        <div class="post-body">
+            {% if post.body_html %}
+                {{ post.body_html | safe }}
+            {% else %}
+                {{ post.body }}
+            {% endif %}
+        </div>
     </li>
     {% endfor %}
 <ul>

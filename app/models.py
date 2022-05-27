@@ -1,7 +1,9 @@
 # the import below imports db from __init__.py
 from datetime import datetime
 import hashlib
+import bleach
 from flask import current_app
+from markdown import markdown
 from sqlalchemy import false
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -176,6 +178,29 @@ class Post(db.Model):
     __tablename__ = "posts"
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    # The markdown input field can be dangerous, attackers can create markdown that generates
+    # html code that can attack the server.
+    # To avoid this, the markdown input is filtered by the below staticmethod.
+    # The db.event.listen listens to a db.session.add(post) event, that sets/edits the body column.
+    # When it happens, the Post.on_changed_body method is run
+    # First, the markdown input is turned to html by the markdown() method
+    # Second, the bleach.clean() removes any html tags not in allowed_tags
+    # Third, the bleach.linkify() is not a security feature; it's there to convert any URL into clickable
+    # format (i.e. add <a> tags to them)
+    # Finally, the output of this method is put inside body_html.
+    # The _posts.html will look if body_html is not empty (should be). If it isn't, then this will be rendered. Otherwise,
+    # the raw markdown will be rendered by Jinja to html.
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True))
+
+db.event.listen(Post.body, 'set', Post.on_changed_body)
