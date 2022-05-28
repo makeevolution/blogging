@@ -15,7 +15,13 @@ class Config:
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN') or "aldohasibuan1@gmail.com"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLASKY_POSTS_PER_PAGE = 5
-
+    NAMING_CONVENTION = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
     # This class can be used to allow the application to customize is configurations.
     # e.g. all the config above can optionally be set here, for example:
     # app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', 'false')
@@ -33,7 +39,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'sqlite://'
+        'sqlite:///'
 
 
 class ProductionConfig(Config):

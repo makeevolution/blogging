@@ -29,7 +29,7 @@ class Follow(db.Model):
     __tablename__ = 'follows'
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
                             primary_key=True)
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    following_id = db.Column(db.Integer, db.ForeignKey('users.id'),
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -54,14 +54,15 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     # a db relationship to indicate one to many relationship i.e. one user can have
     # many posts, but one post can only belong to one person.
-    followed = db.relationship('Follow',
+    
+    following = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
                                lazy='dynamic',
                                cascade='all, delete-orphan')
     followers = db.relationship('Follow',
-                                foreign_keys=[Follow.followed_id],
-                                backref=db.backref('followed', lazy='joined'),
+                                foreign_keys=[Follow.following_id],
+                                backref=db.backref('following', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
     def __repr__(self):
@@ -112,19 +113,19 @@ class User(UserMixin, db.Model):
     
     def follow(self, user):
         if not self.is_following(user):
-            f = Follow(followed=user)
-            self.followed.append(f)
+            f = Follow(following=user)
+            self.following.append(f)
 
     def unfollow(self, user):
-        f = self.followed.filter_by(followed_id=user.id).first()
+        f = self.following.filter_by(following_id=user.id).first()
         if f:
-            self.followed.remove(f)
+            self.following.remove(f)
 
     def is_following(self, user):
         if user.id is None:
             return False
-        return self.followed.filter_by(
-            followed_id=user.id).first() is not None
+        return self.following.filter_by(
+            following_id=user.id).first() is not None
 
     def is_followed_by(self, user):
         if user.id is None:

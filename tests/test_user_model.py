@@ -1,29 +1,38 @@
 from datetime import datetime
-from queue import Empty
 from app.models import AnonymousUser, Permission, User, Role, Follow
 import unittest
-from app import db
+from app import db, create_app
 from faker import Faker
 
 class UserModelTestCase(unittest.TestCase):
-    def setUp(self) -> None:
-        # ARRANGE
-        self.u = User()
-        self.u.password = "12345"
-        
+    def setUp(self):
+        self.app = create_app('testing')
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        Role.insert_roles()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
     def test_password_setter(self):
         # ACT & ASSERT
-        self.assertTrue(self.u.password_hash is not None)
+        u = User(password="cat")
+        self.assertTrue(u.password_hash is not None)
     
     def test_no_password_getter(self):
         # ACT & ASSERT
         # assertRaises is used as a context manager
+        u = User(password="cat")
         with self.assertRaises(AttributeError) as _:
-            self.u.password
+            u.password
     
     def test_password_verifier(self):
         # ACT & ASSERT
-        self.assertTrue(self.u.verify_password("12345"))
+        u = User(password="cat")
+        self.assertTrue(u.verify_password("cat"))
     
     def test_user_role(self):
         user = User(role = Role.query.filter_by(name="User").first())
@@ -63,7 +72,7 @@ class UserModelTestCase(unittest.TestCase):
             if(email1!=email2 and username1!=username2):
                 break
         u1 = User(email=email1, username = username1, password='cat')
-        u2 = User(email=email2, username=username2,  password='dog')
+        u2 = User(email=email2, username = username2,  password='dog')
         db.session.add(u1)
         db.session.add(u2)
         db.session.commit()
@@ -77,17 +86,17 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u1.is_following(u2))
         self.assertFalse(u1.is_followed_by(u2))
         self.assertTrue(u2.is_followed_by(u1))
-        self.assertTrue(u1.followed.count() == 1)
+        self.assertTrue(u1.following.count() == 1)
         self.assertTrue(u2.followers.count() == 1)
-        f = u1.followed.all()[-1]
-        self.assertTrue(f.followed == u2)
+        f = u1.following.all()[-1]
+        self.assertTrue(f.following == u2)
         self.assertTrue(timestamp_before <= f.timestamp <= timestamp_after)
         f = u2.followers.all()[-1]
         self.assertTrue(f.follower == u1)
         u1.unfollow(u2)
         db.session.add(u1)
         db.session.commit()
-        self.assertTrue(u1.followed.count() == 0)
+        self.assertTrue(u1.following.count() == 0)
         self.assertTrue(u2.followers.count() == 0)
         self.assertTrue(Follow.query.count() == 0)
         u2.follow(u1)
