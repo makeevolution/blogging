@@ -1,6 +1,9 @@
+from datetime import datetime
 from queue import Empty
-from app.models import AnonymousUser, Permission, User, Role 
+from app.models import AnonymousUser, Permission, User, Role, Follow
 import unittest
+from app import db
+from faker import Faker
 
 class UserModelTestCase(unittest.TestCase):
     def setUp(self) -> None:
@@ -51,3 +54,46 @@ class UserModelTestCase(unittest.TestCase):
         for permission in filter(lambda x: not x.startswith('--'), dir(Permission)):
             self.assertFalse(user.can(permission))
 
+    def test_follows(self):
+        while True:
+            email1= Faker().email()
+            email2= Faker().email()
+            username1= Faker().name()
+            username2= Faker().name()
+            if(email1!=email2 and username1!=username2):
+                break
+        u1 = User(email=email1, username = username1, password='cat')
+        u2 = User(email=email2, username=username2,  password='dog')
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.commit()
+        self.assertFalse(u1.is_following(u2))
+        self.assertFalse(u1.is_followed_by(u2))
+        timestamp_before = datetime.utcnow()
+        u1.follow(u2)
+        db.session.add(u1)
+        db.session.commit()
+        timestamp_after = datetime.utcnow()
+        self.assertTrue(u1.is_following(u2))
+        self.assertFalse(u1.is_followed_by(u2))
+        self.assertTrue(u2.is_followed_by(u1))
+        self.assertTrue(u1.followed.count() == 1)
+        self.assertTrue(u2.followers.count() == 1)
+        f = u1.followed.all()[-1]
+        self.assertTrue(f.followed == u2)
+        self.assertTrue(timestamp_before <= f.timestamp <= timestamp_after)
+        f = u2.followers.all()[-1]
+        self.assertTrue(f.follower == u1)
+        u1.unfollow(u2)
+        db.session.add(u1)
+        db.session.commit()
+        self.assertTrue(u1.followed.count() == 0)
+        self.assertTrue(u2.followers.count() == 0)
+        self.assertTrue(Follow.query.count() == 0)
+        u2.follow(u1)
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.commit()
+        db.session.delete(u2)
+        db.session.commit()
+        self.assertTrue(Follow.query.count() == 0)
