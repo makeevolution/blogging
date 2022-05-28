@@ -25,6 +25,14 @@ class Permission:
     # permissions a unique value (the sum is always unique).
     # This is also so that the bitwise comparison in has_permission() in Role functions properly.
 
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
 # UserMixin is from flask-login, which has properties and methods related to user authentication
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -46,7 +54,16 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     # a db relationship to indicate one to many relationship i.e. one user can have
     # many posts, but one post can only belong to one person.
-
+    followed = db.relationship('Follow',
+                               foreign_keys=[Follow.follower_id],
+                               backref=db.backref('follower', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
+    followers = db.relationship('Follow',
+                                foreign_keys=[Follow.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -92,7 +109,28 @@ class User(UserMixin, db.Model):
 
     def gravatar_hash(self):
         return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+    
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(followed=user)
+            self.followed.append(f)
 
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            self.followed.remove(f)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.followed.filter_by(
+            followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(
+            follower_id=user.id).first() is not None
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
 class AnonymousUser(AnonymousUserMixin):
