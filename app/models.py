@@ -55,6 +55,34 @@ class User(UserMixin, db.Model):
     # a db relationship to indicate one to many relationship i.e. one user can have
     # many posts, but one post can only belong to one person.
     
+    # The two attributes below ("following" and "followers") define the following and follower relationship between users.
+    # A User can both be followed by multiple users (followers attribute below) and follow multiple users (following attribute below)
+    # So it's a many to many relationship between followers and following.
+    # The Follow class (i.e. "follows" table) is the association table between the two.
+    
+    # The "follows" table has the following structure:
+    # | follower_id | following_id | timestamp |
+
+    # "following" attribute below defines one to many relationship definition between this users table and the follows table.
+    # The column of "follows" table (i.e. attribute of Follow class) that is assigned by foreign_keys below (i.e. follower_id) will contain a user's primary key.
+    # The primary key has to be manually told by the coder to Follow class above (i.e. the db.ForeignKey('users.id') assignment to follower_id in the Follow class above)
+    # Thus follower_id column contains all users id that follow someone. The someone is defined in the following_id column.
+    
+    # Accessing the attribute through an instance of User returns a list of instances of the Follow class, those instances which contain users
+    # that the instance is following.
+
+    # The backref "follower" below (and also "following" backref in followers attribute), makes an attribute "follower" (and "following") available to an instance of the Follow class.
+    # This "follower" attribute can be accessed (i.e. instance.follower) to get the follower (i.e. instance.follower) and the followed user (i.e. instance.following) in that instance.
+    
+    # "joined" argument for lazy in backref is explained here https://docs.sqlalchemy.org/en/14/orm/loading_relationships.html#joined-eager-loading
+    # Unlike other classes, the backref assignment here has an additional db.backref() so we can apply lazy = "joined" to its query
+    # "Cascade" configures how actions performed on a parent object propagates to related objects
+    # The "all, delete-orphan" means to use all default settings for cascade, plus a delete-orphan setting
+    # The delete orphan setting is there so the association table (i.e. "follows") will delete the foreignkeys of any users that are deleted/user that unfollow another, instead of doing the default behaviour which is to set
+    # the key to NULL.
+
+    # The same principles apply to the "follower attribute"
+    # Look at unit test test_follows to understand better how the following features are implemented
     following = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),

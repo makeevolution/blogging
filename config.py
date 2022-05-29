@@ -21,7 +21,7 @@ class Config:
     "ck": "ck_%(table_name)s_%(column_0_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s"
-}
+    }
     # This class can be used to allow the application to customize is configurations.
     # e.g. all the config above can optionally be set here, for example:
     # app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', 'false')

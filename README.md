@@ -40,3 +40,8 @@ Notes
   
 - In this commit, user permission logic is implemented based on the logged in user's role, to limit access to certain routes.
 
+- In this commit, the following/follower feature is implemented through a many to many relationship. See comments on the code for how this works.
+- IMPORTANT: When creating this feature, it was found that auto-generated migration scripts fail. This is primarily because the database used (SQLite) has a very limited support for altering existing tables. See https://www.sqlitetutorial.net/sqlite-alter-table/ for more background info.
+- To get around this, methods explained in https://stackoverflow.com/questions/62640576/flask-migrate-valueerror-constraint-must-have-a-name were followed.
+- In summary, a ```render_as_batch=True``` option is added to the Migrate function in the application factory (```__init.py__```) to get more altering table functionality. In addition, constraints such as foreignkey or primarykey are now given names through ```Config.NAMING_CONVENTION``` option in ```config.py```, because Alembic cannot drop constraints that are not named, which fails upgrades or downgrades that do this. This convention has to be passed in to the migration script, see the migration script ```98a6a60f6c4d.py``` on how this is done, and also the stackoverflow link for more background info. This convention has to also be passed to the db metadata; this is already done in the app factory.
+
