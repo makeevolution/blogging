@@ -23,7 +23,10 @@ def upgrade():
         batch_op.create_foreign_key(batch_op.f('fk_follows_following_id_users'), 'users', ['following_id'], ['id'])
         batch_op.create_foreign_key(batch_op.f('fk_follows_follower_id_users'), 'users', ['follower_id'], ['id'])
         batch_op.drop_column('followed_id')
-
+        batch_op.drop_constraint("pk_follows","follows")
+        batch_op.create_primary_key("pk_follows", "follows", ["follower_id","following_id"])
+    #op.drop_constraint()
+    #op.create_primary_key("pk_follows", "follows")
     # ### end Alembic commands ###
 
 

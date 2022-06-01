@@ -28,7 +28,7 @@
     <!-- Remember that posts and pagination data are already
          synchronized and processed in the route-->
     {% include '_posts.html' %}
-    <div>
+    <div class="pagination">
         {{ macros.pagination_widget(pagination, 'main.index') }}
     </div> 
 </div>
@@ -41,5 +41,3 @@
     1. "LLL" refers to the time zone and locale settings of the server, number
         of L determines the verbosity
     2. include directive is used to be able to use _posts.html template-->
-
-    

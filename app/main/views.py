@@ -18,7 +18,7 @@ def index():
         return redirect(url_for("main.index"))
     page = request.args.get('page', 1, type=int)
     # type=int is so that if 'page' is not an integer, the default value 1 is returned
-    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+    pagination: "flask_sqlalchemy.Pagination" = Post.query.order_by(Post.timestamp.desc()).paginate(
         page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
         error_out = False
     )
@@ -122,3 +122,101 @@ def edit_post(id):
         db.session.commit()
         return redirect(url_for("main.post", id = post.id))
     return render_template("edit_post.html", form = form)
+
+@main.route('/follow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def follow(username):
+    # get the user to be followed
+    user = db.session.query(User).filter_by(username = username).first()
+    # make sure the user is valid
+    if not user:
+        flash("Invalid user input!")
+        return redirect(url_for("main.index"))
+    # make sure the current user is not already following the user
+    if not user.is_followed_by(current_user):
+        # follow the user
+        current_user.follow(user)
+        db.session.add(user)
+        db.session.commit()
+        flash("You are now following this user")
+    else:
+        flash("You are already following this user!")
+    return redirect(url_for("main.user", username=user.username))
+
+@main.route('/unfollow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def unfollow(username):
+    # get the user to be unfollowed
+    user = db.session.query(User).filter_by(username = username).first()
+    # make sure the user is valid
+    if not user:
+        flash("Invalid user input!")
+        return redirect(url_for("main.index"))
+    # make sure the current user is already following the user
+    if user.is_followed_by(current_user):
+        # unfollow the user
+        current_user.unfollow(user)
+        db.session.add(user)
+        db.session.commit()
+        flash("You have unfollowed this user")
+    else:
+        flash("You are already not following this user!")
+    return redirect(url_for("main.user", username=user.username))
+
+@main.route("/followers/<username>")
+def followers(username: str):
+    # return all followers of the user
+    # also give pagination because there are many users!
+    if username is None:
+        flash("Invalid user input!")
+        return redirect(url_for("main.index"))
+    followersAsFollowInstance = db.session.query(User).filter_by(username=username).first().followers
+    page = request.args.get('page', 1, type=int)
+    pagination: "flask_sqlalchemy.Pagination" = followersAsFollowInstance.paginate(
+        page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    )
+    followersCurrentPage = pagination.items
+    fols = [{"username": followerAsFollowInstance.follower.username,
+            "timestamp": followerAsFollowInstance.timestamp,
+            "last_seen": followerAsFollowInstance.follower.last_seen,
+            "about_me": followerAsFollowInstance.follower.about_me,
+            "gravatar": followerAsFollowInstance.follower.gravatar(size=40)}
+            for followerAsFollowInstance in followersCurrentPage]
+    return render_template("followers.html", 
+                            fols = fols,  
+                            page = page,
+                            username = username,
+                            pagination = pagination,
+                            title = "followers",
+                            endpoint = "main.followers")
+
+@main.route("/followings/<username>")
+def followings(username: str):
+    # return all followers of the user
+    # also give pagination because there are many users!
+    if username is None:
+        flash("Invalid user input!")
+        return redirect(url_for("main.index"))
+    followingsAsFollowInstance = db.session.query(User).filter_by(username=username).first().following
+    page = request.args.get('page', 1, type=int)
+    pagination: "flask_sqlalchemy.Pagination" = followingsAsFollowInstance.paginate(
+        page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    )
+    followingsCurrentPage = pagination.items
+    fols = [{"username": followingAsFollowInstance.following.username,
+            "timestamp": followingAsFollowInstance.timestamp,
+            "last_seen": followingAsFollowInstance.following.last_seen,
+            "about_me": followingAsFollowInstance.following.about_me,
+            "gravatar": followingAsFollowInstance.following.gravatar(size=40)}
+            for followingAsFollowInstance in followingsCurrentPage]
+    return render_template("followers.html", 
+                            fols = fols,  
+                            page = page,
+                            username = username,
+                            pagination = pagination,
+                            title = "followings",
+                            endpoint = "main.followings")

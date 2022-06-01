@@ -4,7 +4,7 @@ import hashlib
 import bleach
 from flask import current_app
 from markdown import markdown
-from sqlalchemy import false
+import sqlalchemy
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import AnonymousUserMixin, UserMixin
@@ -25,6 +25,9 @@ class Permission:
     # permissions a unique value (the sum is always unique).
     # This is also so that the bitwise comparison in has_permission() in Role functions properly.
 
+# The class Follow corresponds to the association table called "follows".
+# It has two primary keys. This means no two rows can have the same follower_id and following_id.
+# This is to prevent multiple follower/following instances (a user can only follow another user once. That instance has to be deleted (i.e. unfollow) before re-following is possible.
 class Follow(db.Model):
     __tablename__ = 'follows'
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
@@ -32,6 +35,7 @@ class Follow(db.Model):
     following_id = db.Column(db.Integer, db.ForeignKey('users.id'),
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    trigger = db.Column(db.Text())
 
 # UserMixin is from flask-login, which has properties and methods related to user authentication
 class User(UserMixin, db.Model):
@@ -51,7 +55,7 @@ class User(UserMixin, db.Model):
     # db.ForeignKey('roles.id') means the role_id gets its value from
     # id column of roles table.
     # More info on what index is: https://dataschool.com/sql-optimization/how-indexing-works/
-    posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
+    posts: sqlalchemy.orm.Query = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     # a db relationship to indicate one to many relationship i.e. one user can have
     # many posts, but one post can only belong to one person.
     
@@ -83,12 +87,12 @@ class User(UserMixin, db.Model):
 
     # The same principles apply to the "follower attribute"
     # Look at unit test test_follows to understand better how the following features are implemented
-    following = db.relationship('Follow',
+    following: sqlalchemy.orm.Query = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
                                lazy='dynamic',
                                cascade='all, delete-orphan')
-    followers = db.relationship('Follow',
+    followers: sqlalchemy.orm.Query = db.relationship('Follow',
                                 foreign_keys=[Follow.following_id],
                                 backref=db.backref('following', lazy='joined'),
                                 lazy='dynamic',
@@ -110,20 +114,20 @@ class User(UserMixin, db.Model):
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
     
-    def can(self, permission):
+    def can(self, permission: str) -> bool:
         return self.role is not None and self.role.has_permission(permission)
-    def is_administrator(self):
+    def is_administrator(self) -> bool:
         return self.can(Permission.ADMIN)
     
     @property
     def password(self):
         raise AttributeError("password is not accessible")
     @password.setter
-    def password(self, password):
+    def password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
         # Once a password is hashed, it can never be recovered
     
-    def verify_password(self, password):
+    def verify_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
     def ping(self):
@@ -175,7 +179,7 @@ class Role(db.Model):
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default = False, index = True)
     permissions = db.Column(db.Integer)
-    users = db.relationship('User', backref='role', lazy="dynamic")
+    users: sqlalchemy.orm.Query = db.relationship('User', backref='role', lazy="dynamic")
     # A db relationship is used to indicate a one to many relationship i.e.
     # one role can have many users, but one user can only have one role
 

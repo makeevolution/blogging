@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky - {{ username }}&#39;s {{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>{{ username }}&#39;s {{ title }}</h1>
+</div>
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">User</th>
+        <th scope="col">Start date</th>
+        <th scope="col">Last seen on</th>
+        <th scope="col">About</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for fol in fols %}  
+      <tr>
+        <td>
+            <a href = "{{url_for('main.user', username = fol.username) }}", style = "float:left">
+                <img class="img-rounded"
+                    src = "{{fol.gravatar}}">
+                    {{ fol.username }}
+            </a>
+        </td>
+        <td>{{moment(fol.timestamp).format("L")}}</td>
+        <td>{{moment(fol.last_seen).format("L")}}</td>
+        <td>{{ fol.about_me }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pagination">
+    {{ macros.pagination_widget(pagination, endpoint, username = username) }}
+  </div>
+{%endblock%}

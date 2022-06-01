@@ -11,7 +11,7 @@
     <p>
         {% if user.name %}{{ user.name }}{% endif %}
         {% if user.location %}
-            from <a href="http://maps.google.com/?q={{ user.location }}">{{ user.location }}</a>
+            from <a href="http://maps.google.com/?q={{ user.location }}">From {{ user.location }}</a>
         {% endif %}
     </p>
     {% endif %}
@@ -27,6 +27,20 @@
         </a>
     </p>
     {%endif%}
+    <div class="user-following-features">
+        {% if current_user.is_authenticated and current_user.can(Permission.FOLLOW) and user != current_user%}
+            {% if not current_user.is_following(user) %}
+                <a class = "btn btn-primary" href="{{ url_for('main.follow', username = user.username) }}">Follow</a>
+                {% else %}
+                <a class = "btn btn-primary" href="{{ url_for('main.unfollow', username = user.username) }}">Unfollow</a>
+            {% endif %}
+        {%endif%}
+        <a href="{{ url_for('main.followers', username=user.username) }}">Followers: <span class="badge">{{ user.followers.count() }}</span></a>
+        <a href="{{ url_for('main.followings', username=user.username) }}">Following: <span class="badge">{{ user.following.count() }}</span></a>
+        {% if current_user.is_authenticated and user.is_following(current_user) and user == current_user%}
+            | <span class="label label-default"> Follows you</span>
+        {% endif %}
+    </div>
     <div class="user-posts">
         <h3> {{ user.username }}'s posts</h3>
         {% include '_posts.html' %}
