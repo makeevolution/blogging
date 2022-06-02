@@ -33,3 +33,6 @@ div.post-body {
     margin-left: 48px;
     min-height: 48px;
 }
+div.post-tabs {
+    margin-top: 16px;
+}

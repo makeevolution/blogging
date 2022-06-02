@@ -25,6 +25,28 @@
         {{wtf.quick_form(form)}}
     {% endif %}
     <h1>Posts</h1>
+    <div class="post-tabs">
+        <ul class="nav nav-pills">
+            <li{% if not only_following_posts %} class="active"{% endif %}>
+                <a 
+                    href="{{ url_for('main.show_all') }}"
+                    >
+                    All
+                </a>
+            </li>
+            {% if current_user.is_authenticated %}
+
+            <li{% if only_following_posts %} class="active"{% endif %}>
+                <a 
+                    href="{{ url_for('main.show_following') }}"
+                    >
+                    Those You follow
+                </a>
+            </li>
+            {% endif %}    
+        </ul>
+    </div>
+   
     <!-- Remember that posts and pagination data are already
          synchronized and processed in the route-->
     {% include '_posts.html' %}

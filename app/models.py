@@ -164,6 +164,26 @@ class User(UserMixin, db.Model):
             return False
         return self.followers.filter_by(
             follower_id=user.id).first() is not None
+
+    # The below property gets the posts of those who follow this user. 
+    # We could do [[post for post in follower.posts.all()] for follower in db.session.query(User).filter_by(user = self).followers.all()]
+    # but this is expensive; each iteration will interrogate the db once; in total there will be 
+    # totalNoOfUsers + firstInitialCallToGetAllFollowersOfSelf calls to the db!
+    
+    # Better way: We combine posts and follows table, keeping only posts that are authored by users who follow someone (i.e. the argument of .join() below)
+    # Then, filter that joined table based on users who follow self (i.e. the argument to .filter() below)
+    # Since the query starts with .query(Post), the return value will be of type Post (i.e. only return the columns of the joined table that are in posts table)
+    
+    # The statement in SQL is:
+    # SELECT posts.id AS posts_id, posts.body AS posts_body, posts.body_html AS posts_body_html, posts.timestamp AS posts_timestamp, posts.author_id AS posts_author_id 
+    # FROM posts JOIN follows ON follows.following_id = posts.author_id
+    # WHERE follows.follower_id = ?
+    @property
+    def following_posts(self):
+        return db.session.query(Post)\
+                .join(Follow, Follow.following_id == Post.author_id)\
+                .filter(Follow.follower_id == self.id)
+
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
 class AnonymousUser(AnonymousUserMixin):

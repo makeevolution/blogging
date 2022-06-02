@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import current_app, flash, render_template, request, session, redirect, url_for, abort
+from flask import current_app, flash, make_response, render_template, request, session, redirect, url_for, abort
 from flask_login import current_user, login_required
 # the below imports the blueprint called "main" from __init__.py
 from . import main
@@ -18,7 +18,14 @@ def index():
         return redirect(url_for("main.index"))
     page = request.args.get('page', 1, type=int)
     # type=int is so that if 'page' is not an integer, the default value 1 is returned
-    pagination: "flask_sqlalchemy.Pagination" = Post.query.order_by(Post.timestamp.desc()).paginate(
+    only_following_posts = False
+    if current_user.is_authenticated:
+        only_following_posts = bool(request.cookies.get('only_following_posts', ''))
+    if only_following_posts:
+        query = current_user.following_posts
+    else:
+        query = Post.query
+    pagination: "flask_sqlalchemy.Pagination" = query.order_by(Post.timestamp.desc()).paginate(
         page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
         error_out = False
     )
@@ -31,7 +38,26 @@ def index():
                             current_time = datetime.utcnow(),
                             form = form,
                             posts = posts,
+                            only_following_posts = only_following_posts,
                             pagination = pagination)
+
+# /all and /following routes sets whether the posts to be shown is all or just those
+# of the users the currently logged in user follows. The set_cookie option makes it
+# so that the browser of the user remembers the choice.
+
+@main.route('/all')
+@login_required
+def show_all():
+    response = make_response(redirect(url_for('main.index')))
+    response.set_cookie('only_following_posts', '', max_age = 60*60*24*30) # 30 days
+    return response
+
+@main.route('/following')
+@login_required
+def show_following():
+    response = make_response(redirect(url_for('main.index')))
+    response.set_cookie('only_following_posts', '1', max_age = 60*60*24*30) # 30 days
+    return response
 
 @main.route('/user/<username>')
 def user(username):
