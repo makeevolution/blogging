@@ -38,6 +38,9 @@
                 {%endif%}
             </ul>
             <ul class = "nav navbar-nav navbar-right">
+                {% if current_user.can(Permission.MODERATE) %}        
+                    <li><a href="{{url_for('main.moderate') }}">Moderate Comments</a></li>
+                {% endif %}
                 <!-- The current_user is provided by the flask login package in the background-->
                 <!-- The Jinja template invokes _get_user() function of flask login, which checks
                 if there is a user ID stored in the user session. If there is, it will invoke

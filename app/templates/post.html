@@ -7,4 +7,7 @@
 {% block page_content %}
     {% include '_posts.html' %}
     {% include '_comments.html' %}
+    <div class="pagination">
+        {{ macros.pagination_widget(pagination, 'main.post', id = posts[0].id) }}
+    </div>
 {%endblock%}

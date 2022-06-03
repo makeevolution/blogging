@@ -119,12 +119,6 @@ def edit_profile_admin(id):
 @admin_required
 def for_admins_only():
     return "For Administrators only!"
-    
-@main.route('/moderate')
-@login_required
-@permission_required(Permission.MODERATE)
-def for_moderators_only():
-    return "For comment Moderators!"
 
 @main.route('/post/<int:id>', methods=["GET","POST"])
 def post(id):
@@ -262,3 +256,37 @@ def followings(username: str):
                             pagination = pagination,
                             title = "followings",
                             endpoint = "main.followings")
+
+@main.route("/moderate")
+@login_required
+@permission_required(Permission.MODERATE)
+def moderate():
+    page = request.args.get('page', 1, type=int)
+    pagination: "flask_sqlalchemy.Pagination" = db.session.query(Comment).\
+                                                order_by(Comment.timestamp.desc()).paginate(
+        page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    ) 
+    comments = pagination.items
+    return render_template("moderate.html", comments = comments, pagination = pagination)
+
+@main.route("/moderate/enable/<int:id>")
+@login_required
+@permission_required(Permission.MODERATE)
+def moderate_enable(id):
+    comment = db.session.query(Comment).get(id)
+    comment.disabled = 0
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(request.referrer)
+
+
+@main.route("/moderate/disable/<int:id>")
+@login_required
+@permission_required(Permission.MODERATE)
+def moderate_disable(id):
+    comment = db.session.query(Comment).get(id)
+    comment.disabled = 1
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(request.referrer)
