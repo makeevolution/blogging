@@ -33,6 +33,31 @@ div.post-body {
     margin-left: 48px;
     min-height: 48px;
 }
-div.post-tabs {
-    margin-top: 16px;
+ul.comments {
+    list-style-type: none;
+    padding: 0px;
+    margin: 16px 0px 0px 0px;
+    border-top: 1px solid #e0e0e0;
+}
+ul.comments li.comment {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+ul.comments li.post:comment {
+    background-color: #f0f0f0;
+}
+div.comment-date {
+    float: right;
+}
+div.comment-author {
+    margin-left: 48px;
+    min-height: 48px;
+    font-weight: bold;
+}
+div.comment-thumbnail {
+    position: absolute;
+}
+div.comment-body {
+    margin-left: 48px;
+    min-height: 48px;
 }

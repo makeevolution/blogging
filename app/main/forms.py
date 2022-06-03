@@ -62,3 +62,10 @@ class PostForm(FlaskForm):
                          description="Markdown formatting is supported!")
 
     submit = SubmitField('Submit')
+
+class CommentForm(FlaskForm):
+    text = StringField('Comment Here',
+                         validators=[DataRequired()],
+                         description="Markdown formatting is supported!")
+
+    submit = SubmitField('Submit')

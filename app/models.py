@@ -1,6 +1,7 @@
 # the import below imports db from __init__.py
 from datetime import datetime
 import hashlib
+from sqlite3 import Timestamp
 import bleach
 from flask import current_app
 from markdown import markdown
@@ -36,6 +37,30 @@ class Follow(db.Model):
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     trigger = db.Column(db.Text())
+
+# A comment belogns to one user, one user can have multiple comments (one to many)
+# A comment belongs to a post, one post can have multiple comments (one to many) 
+# Thus, a comment instance has 2 foreign and primary keys, one for the user making it and one for the post its in
+# 2 primary keys because it has to be unique to a user and a post
+class Comment(db.Model):
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key = True)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True))
+
+db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 
 # UserMixin is from flask-login, which has properties and methods related to user authentication
 class User(UserMixin, db.Model):
@@ -97,6 +122,13 @@ class User(UserMixin, db.Model):
                                 backref=db.backref('following', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
+    
+    comments: sqlalchemy.orm.Query = db.relationship('Comment',
+                                foreign_keys = [Comment.author_id],
+                                backref = db.backref('author', lazy = 'joined'),
+                                lazy = 'dynamic',
+                                cascade = 'all, delete-orphan')
+
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -273,6 +305,12 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    comments: sqlalchemy.orm.Query = db.relationship('Comment',
+                                foreign_keys = [Comment.post_id],
+                                backref = db.backref('post', lazy = 'joined'),
+                                lazy = 'dynamic',
+                                cascade = 'all, delete-orphan')
+
     # The markdown input field can be dangerous, attackers can create markdown that generates
     # html code that can attack the server.
     # To avoid this, the markdown input is filtered by the below staticmethod.
@@ -294,4 +332,13 @@ class Post(db.Model):
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
 
+    def create_comment(self, author: User, body: str):
+        if body == "":
+            return 
+        comment = Comment(author = author, post = self, body = body)
+        db.session.add(comment)
+        db.session.commit()
+
+
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+

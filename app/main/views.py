@@ -3,9 +3,9 @@ from flask import current_app, flash, make_response, render_template, request, s
 from flask_login import current_user, login_required
 # the below imports the blueprint called "main" from __init__.py
 from . import main
-from .forms import EditProfileAdminForm, EditProfileForm, PostForm
+from .forms import EditProfileAdminForm, EditProfileForm, PostForm, CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post
+from ..models import Permission, Role, User, Post, Comment
 from ..decorators import admin_required, permission_required
 
 @main.route('/', methods=["GET","POST"])
@@ -126,10 +126,26 @@ def for_admins_only():
 def for_moderators_only():
     return "For comment Moderators!"
 
-@main.route('/post/<int:id>')
+@main.route('/post/<int:id>', methods=["GET","POST"])
 def post(id):
     post = db.session.query(Post).get_or_404(id)
-    return render_template('post.html', posts = [post]) # Send as list since _posts.html expects a list!
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(author = current_user._get_current_object(), post = post, body = form.text.data)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('main.post', id = post.id))
+    page = request.args.get('page', 1, type=int)
+    pagination: "flask_sqlalchemy.Pagination" = post.comments.order_by(Comment.timestamp.desc()).paginate(
+        page, per_page=current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    ) 
+    comments = pagination.items
+    return render_template('post.html',
+                            posts = [post], 
+                            form=form,
+                            comments = comments,
+                            pagination = pagination)
 
 @main.route('/edit/<int:id>', methods=["GET","POST"])
 def edit_post(id):
