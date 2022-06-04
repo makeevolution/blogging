@@ -1,14 +1,18 @@
 # the import below imports db from __init__.py
 from datetime import datetime
 import hashlib
+import json
 from sqlite3 import Timestamp
+from xml.dom import ValidationErr
 import bleach
-from flask import current_app
+from flask import current_app, url_for
+from itsdangerous import Serializer
 from markdown import markdown
 import sqlalchemy
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import AnonymousUserMixin, UserMixin
+from app.exceptions import ValidationError
 
 # This decorator is used to help the login manager
 # to get info about the logged-in user.
@@ -147,6 +151,8 @@ class User(UserMixin, db.Model):
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
     
+    def __repr__(self):
+        return '<User %r>' % self.username
     def can(self, permission: str) -> bool:
         return self.role is not None and self.role.has_permission(permission)
     def is_administrator(self) -> bool:
@@ -216,6 +222,43 @@ class User(UserMixin, db.Model):
         return db.session.query(Post)\
                 .join(Follow, Follow.following_id == Post.author_id)\
                 .filter(Follow.follower_id == self.id)
+
+    # The token generators below are used by the API to authenticate a user
+    # without a password, since sending passwords at every request is dangerous
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'],
+                       expires_in=expiration)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
+    
+    def to_json(self):
+        return { 
+            "username": self.username,
+            "role": self.role.name,
+            "name": self.name,
+            "location": self.location,
+            "about_me": self.about_me,
+            "member_since": self.member_since,
+            "last_seen": self.last_seen,
+            "posts_url": url_for('api.get_user_posts', id=self.id),
+            "post_count": self.posts.count()
+        }
+    
+    @staticmethod
+    def from_json(json_post):
+        body = json_post.get('body')
+        if body is None or body == '':
+            raise ValidationError('Post does not have a body')
+        return Post(body=body)
+
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
@@ -339,6 +382,18 @@ class Post(db.Model):
         comment = Comment(author = author, post = self, body = body)
         db.session.add(comment)
         db.session.commit()
+    
+    def to_json(self):
+        json_post = {
+            "body": self.body,
+            "body_html": self.body_html,
+            "timestamp": self.timestamp,
+            "author_url": url_for("api.get_user", id=self.author_id),
+            "comments_url": url_for("api.get_post_comments", id = self.id),
+            "comment_count": self.comments.count(),
+            "url": url_for('api.get_post', id=self.id)
+        }
+        return json_post
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
