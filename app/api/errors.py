@@ -1,6 +1,5 @@
-from urllib import response
 from flask import jsonify, render_template, request
-from app import api
+from . import api
 from app.exceptions import ValidationError
 from app.main import main
 
