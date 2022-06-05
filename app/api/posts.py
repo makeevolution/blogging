@@ -39,6 +39,26 @@ def get_post(id):
     post = db.session.query(Post).get_or_404(id)
     return jsonify(post.to_json())
 
+@api.route('/posts/<int:id>/get_post_comments/')
+def get_post_comments(id):
+    page = request.args.get('page', 1, type = int)
+    post = db.session.query(Post).get_or_404(id)
+    paginate = post.commments.paginate(
+        page, per_page = current_app.config["FLASKY_POSTS_PER_PAGE"],
+        error_out = False
+    )
+    posts = paginate.items
+    prev = None
+    next = None
+    if paginate.has_prev:
+        prev = url_for("api.get_post_comments", page = page - 1)
+    if paginate.has_next:
+        next = url_for("api.get_post_comments", page = page + 1)
+    return jsonify({"posts": [post.to_json() for post in posts],
+                    "url_prev": prev,
+                    "url_next": next,
+                    'total_posts': paginate.total})
+    
 @api.route('/posts/<int:id>', methods=['PUT'])
 @permission_required(Permission.WRITE)
 def edit_post(id):
