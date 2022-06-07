@@ -38,3 +38,6 @@ nosetests.xml
 # Virtual environment
 venvROG/
 .vscode/
+
+# general
+tmp*

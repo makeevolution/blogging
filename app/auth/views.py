@@ -52,7 +52,7 @@ def login():
 
     return render_template('auth/login.html', form = form)
 
-@auth.route('/logout')   
+@auth.route('/logout')
 @login_required
 def logout():
     # Logout the user using flask login package's logout_user function
