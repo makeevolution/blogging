@@ -142,6 +142,7 @@ def post(id):
                             pagination = pagination)
 
 @main.route('/edit/<int:id>', methods=["GET","POST"])
+@login_required
 def edit_post(id):
     # first check if the person have edit permissions (only admin and the user himself)
     # next get the post 

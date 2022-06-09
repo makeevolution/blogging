@@ -71,6 +71,7 @@ db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50))
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -81,6 +82,11 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default = datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
+    # Polymorphic arguments below is for if User is being inherited (like in the factory)
+    # Type column is there to register the inheriter in the table.
+    # The inheriter needs to set its identity, see user_factory.py on how.
+    # More info: https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "user"}
     avatar_hash = db.Column(db.String(32)) #store avatar hash because computing hash is expensive
     # db.ForeignKey('roles.id') means the role_id gets its value from
     # id column of roles table.

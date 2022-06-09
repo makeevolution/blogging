@@ -15,7 +15,6 @@ def before_request():
     # current_user can also be an anonymous user!!! So need to check authentication
     if current_user.is_authenticated:
         current_user.ping()
-        
 
 @auth.route('/login', methods=["GET","POST"])
 def login():
