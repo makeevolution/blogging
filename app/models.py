@@ -71,7 +71,7 @@ db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(50))
+    type = db.Column(db.String(50), default = "user")
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -187,7 +187,7 @@ class User(UserMixin, db.Model):
 
     def gravatar_hash(self):
         return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
-    
+ 
     def follow(self, user):
         if not self.is_following(user):
             f = Follow(following=user)
@@ -264,7 +264,6 @@ class User(UserMixin, db.Model):
         if body is None or body == '':
             raise ValidationError('Post does not have a body')
         return Post(body=body)
-
 
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods

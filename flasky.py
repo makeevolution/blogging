@@ -33,6 +33,7 @@ if (sys.gettrace() is None):
 # The following import imports from __init__.py of app folder
 from app import create_app, db
 from app.models import Permission, User, Role, Follow, Post
+from app.factories import GenericUser, ModeratorUser, AdminUser
 from flask_migrate import Migrate
 from config import config
 
@@ -48,7 +49,8 @@ def make_shell_context():
     print("Shell started")
     print(f"WARNING: using database " + \
             getattr(config[usedConfiguration], "SQLALCHEMY_DATABASE_URI"))
-    return dict(db=db, User=User, Role=Role, Permission = Permission, Follow=Follow, Post=Post)
+    return dict(db=db, User=User, Role=Role, Permission = Permission, Follow=Follow, Post=Post, 
+                GenericUser = GenericUser, ModeratorUser = ModeratorUser, AdminUser = AdminUser)
 
 # Configuration for test coverage report. Need to put it here so that it starts scanning
 # before any imports for the app starts.

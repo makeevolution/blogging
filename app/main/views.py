@@ -62,10 +62,10 @@ def show_following():
 @main.route('/user/<username>')
 def user(username):
     user = db.session.query(User).filter_by(username = username).first()
-    posts = user.posts.order_by(Post.timestamp.desc()).all()
     if user is None:
         flash(f"User {username} not found")
-        abort(404)
+        abort(404)    
+    posts = user.posts.order_by(Post.timestamp.desc()).all()
     return render_template("user.html", user = user, posts = posts)
 
 @main.route("/edit_profile", methods=["GET","POST"])
@@ -97,7 +97,7 @@ def edit_profile_admin(id):
        user.about_me = form.about_me.data
        user.username = form.username.data
        user.email = form.email.data
-       user.confirmed = form.confirmed.data
+       user.confirmed = form.confirmed.data 
        user.role = db.session.query(Role).get(form.role.data)
        db.session.add(user)
        db.session.commit()
@@ -142,7 +142,6 @@ def post(id):
                             pagination = pagination)
 
 @main.route('/edit/<int:id>', methods=["GET","POST"])
-@login_required
 def edit_post(id):
     # first check if the person have edit permissions (only admin and the user himself)
     # next get the post 
@@ -152,9 +151,10 @@ def edit_post(id):
     if (post.author != current_user) and (not current_user.can(Permission.ADMIN)):
         abort(403)
     form = PostForm()
-    form.text.data = post.body # Post to be edited is displayed first
+    newText = form.text.data # Post to be edited is displayed first
+    form.text.data = post.body
     if form.validate_on_submit():
-        post.body = form.text.data
+        post.body = newText
         db.session.add(post)
         db.session.commit()
         return redirect(url_for("main.post", id = post.id))
