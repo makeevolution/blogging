@@ -1,6 +1,7 @@
 import ast
 from dataclasses import dataclass
 from functools import wraps
+from multiprocessing.sharedctypes import Value
 from string import ascii_letters
 import unittest, logging, sys
 
@@ -64,6 +65,26 @@ def post_something(user, post_body = "test"):
         return decorated_function
     return decorator
 
+def comment_something(user, post_id, comment_body):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(self, *args, **kwargs):
+            try:
+                userInstance = getattr(self,user)
+            except AttributeError as e:
+                e.args = (f"User {user} is not yet defined!",)
+                raise
+            comment = Comment(author = userInstance, body=comment_body, post_id = post_id)
+            db.session.add(comment)
+            db.session.commit()
+            try:
+                f(self)
+            finally:
+                db.session.delete(comment)
+                db.session.commit()
+        return decorated_function
+    return decorator
+
 def unfollow(follower, to_be_unfollowed):
     def decorator(f):
         @wraps(f)
@@ -81,21 +102,28 @@ def unfollow(follower, to_be_unfollowed):
         return decorated_function
     return decorator
 
-def follow_with_unfollow_teardown(follower, to_be_followed):
+def follow_with_unfollow_teardown(*followerFollowingPair):
     def decorator(f):
         @wraps(f)
         def decorated_function(self, *args, **kwargs):
-            try:
-                userInstanceFollower = getattr(self,follower)
-                userInstanceToBeFollowed = getattr(self,to_be_followed)
-            except AttributeError as e:
-                e.args = (f"User {follower} or/and {to_be_followed} are not yet defined!",)
-                raise
-            userInstanceFollower.follow(userInstanceToBeFollowed)
+            if(len(followerFollowingPair)%2 != 0):
+                raise ValueError("Each follower must have a follow target")
+            pair = [(followerFollowingPair[i-1],j) for i,j in enumerate(followerFollowingPair) if i%2!=0]  
+            for follower, followed in pair:
+                try:
+                    userInstanceFollower = getattr(self,follower)
+                    userInstanceToBeFollowed = getattr(self,followed)
+                    userInstanceFollower.follow(userInstanceToBeFollowed)
+                except AttributeError as e:
+                    e.args = (f"User {follower} or/and {followed} are not yet defined!",)
+                    raise
             try:
                 f(self)
             finally:
-                userInstanceFollower.unfollow(userInstanceToBeFollowed)
+                for follower, followed in pair:
+                    userInstanceFollower = getattr(self,follower)
+                    userInstanceToBeFollowed = getattr(self,followed)
+                    userInstanceFollower.unfollow(userInstanceToBeFollowed)
         return decorated_function
     return decorator
 
@@ -107,6 +135,12 @@ class MainTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         # Make the app accessible by current_app by pushing the app's app_context
         self.app_context.push()
+        
+    @classmethod
+    def tearDownClass(self) -> None:
+        self.app_context.pop()
+
+    def setUp(self):
         # Create the tables; the models are ready but the corresponding tables are
         # not created yet!
         db.create_all()
@@ -119,13 +153,11 @@ class MainTestCase(unittest.TestCase):
         self.administratorUser = user_factory("Administrator")
         # Create a generic test client (i.e. browser)
         self.client = self.app.test_client(use_cookies=True)
-    
-    @classmethod
-    def tearDownClass(self) -> None:
+
+    def tearDown(self) -> None:
         db.session.remove()
         db.drop_all()
-        self.app_context.pop()
-    
+
     def test_index(self):
         #log = logging.getLogger(__name__)
         resp = self.client.get("/")
@@ -208,10 +240,7 @@ class MainTestCase(unittest.TestCase):
             "confirmed": newUserConfirmed,
             "role": "2"
         })
-        # If you change the role, the type is not changed
-        #Also, changing polymorphic_on column without using UPDATE doesn't work!
-        # Weird. Do this later
-        print("FIX THIS")
+        self.assertTrue(self.genericUser.role.name == "Moderator")
 
     # Remember since the decorators are wrappers,
     # the execution order is first post_something up to f(self),
@@ -314,10 +343,44 @@ class MainTestCase(unittest.TestCase):
         self.assertTrue("Invalid user input!" in resp.get_data(as_text=True))
         self.assertTrue(resp.request.path == "/")
 
-    @follow_with_unfollow_teardown("moderatorUser","genericUser")
-    @follow_with_unfollow_teardown("administratorUSer","genericUser")
+    @follow_with_unfollow_teardown("moderatorUser","genericUser", 
+                                    "administratorUser","genericUser")
     def test_followers_success(self):
-        resp = self.client.get(f"/followers/{self.genericUser.username}")
-        self.assertTrue(f"{self.moderatorUser.username}" in resp.get_data(as_text=True))
-        self.assertTrue(f"{self.administratorUser.username}" in resp.get_data(as_text=True))
+         resp = self.client.get(f"/followers/{self.genericUser.username}")
+         self.assertTrue(f"{self.moderatorUser.username}" in resp.get_data(as_text=True))
+         self.assertTrue(f"{self.administratorUser.username}" in resp.get_data(as_text=True))
+    
+    @follow_with_unfollow_teardown("genericUser","moderatorUser", 
+                                    "genericUser","administratorUser")
+    def test_followings_success(self):
+         resp = self.client.get(f"/followings/{self.genericUser.username}")
+         self.assertTrue(f"{self.moderatorUser.username}" in resp.get_data(as_text=True))
+         self.assertTrue(f"{self.administratorUser.username}" in resp.get_data(as_text=True))
 
+    @log_in_and_out("moderatorUser")
+    def test_moderate_success(self):
+        resp = self.client.get(f"/moderate")
+        self.assertEqual(resp.status_code, 200)
+    
+    @log_in_and_out("genericUser")
+    def test_moderate_fails(self):
+        resp = self.client.get(f"/moderate", follow_redirects = True)
+        self.assertEqual(resp.status_code, 403)
+
+    @log_in_and_out("moderatorUser")
+    @post_something("genericUser", "testPost")
+    @comment_something("genericUser", 1, "testComment")
+    def test_moderate_disable_enable_success(self):
+        # First test if the comment is enabled
+        self.assertEqual(db.session.query(Comment).get(1).disabled, 0)
+        resp = self.client.get(f"/moderate/disable/1")
+        # Then check if comment is disabled
+        self.assertEqual(db.session.query(Comment).get(1).disabled, 1)
+        # And also that it is disabled in moderate page 
+        resp2 = self.client.get(f"/moderate")
+        self.assertTrue("This comment has been disabled" in resp2.get_data(as_text=True))
+        # Re-enable and test if it exists again
+        resp3 = self.client.get(f"/moderate/enable/1")
+        self.assertEqual(db.session.query(Comment).get(1).disabled, 0)
+        resp4 = self.client.get(f"/moderate")
+        self.assertTrue("testComment" in resp4.get_data(as_text=True))

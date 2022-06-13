@@ -5,19 +5,28 @@ from .role_factory import role_factory
 fake = Faker()
 
 class ModeratorUser(User):
-    role = role_factory("Moderator")
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.role = db.session.query(Role).filter_by(name = "Moderator").first() 
+   
     __mapper_args__ = {
         "polymorphic_identity": "ModeratorUser",
     }
 
 class AdminUser(User):
-    role = role_factory("Administrator")
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.role = db.session.query(Role).filter_by(name = "Administrator").first() 
+
     __mapper_args__ = {
         "polymorphic_identity": "AdministratorUser",
     }
 
 class GenericUser(User):
-    role = role_factory("User")
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.role = db.session.query(Role).filter_by(name = "User").first() 
+
     __mapper_args__ = {
         "polymorphic_identity": "GenericUser",
     }

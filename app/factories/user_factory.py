@@ -20,14 +20,12 @@ def user_factory(userType):
         name=fake.name(),
         location=fake.city(),
         about_me=fake.text(),
-        member_since=fake.past_date()
+        member_since=fake.past_date(),
     )
-
     try:
         db.session.add(createdUser)
         db.session.commit()
-    except IntegrityError:
-        
-        raise
-    finally:        
+    except IntegrityError as e: 
+        raise e
+    finally:
         return createdUser

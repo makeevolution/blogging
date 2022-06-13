@@ -92,6 +92,7 @@ def edit_profile_admin(id):
     user = db.session.query(User).get_or_404(id)
     form = EditProfileAdminForm(user)
     if form.validate_on_submit():
+       #try using update instead of session commit
        user.name = form.name.data
        user.location = form.location.data
        user.about_me = form.about_me.data
@@ -102,7 +103,7 @@ def edit_profile_admin(id):
        db.session.add(user)
        db.session.commit()
        flash(f"Profile has been successfully updated!")
-       return redirect(url_for("main.user", username=user.username))
+       return redirect(url_for("main.user", username=db.session.query(User).get(id)))
     form.name.data = user.name
     form.location.data = user.location
     form.about_me.data = user.about_me
@@ -279,7 +280,7 @@ def moderate_enable(id):
     comment.disabled = 0
     db.session.add(comment)
     db.session.commit()
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("main.index"))
 
 
 @main.route("/moderate/disable/<int:id>")
@@ -290,4 +291,4 @@ def moderate_disable(id):
     comment.disabled = 1
     db.session.add(comment)
     db.session.commit()
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("main.index"))

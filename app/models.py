@@ -264,7 +264,7 @@ class User(UserMixin, db.Model):
         if body is None or body == '':
             raise ValidationError('Post does not have a body')
         return Post(body=body)
-
+    
 # Flask-login has their own AnonymousUser class, but here we
 # override it with our own implementation, to also have can and is_admin methods
 class AnonymousUser(AnonymousUserMixin):
@@ -276,6 +276,7 @@ login_manager.anonymous_user = AnonymousUser
 
 class Role(db.Model):
     __tablename__ = 'roles'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default = False, index = True)
@@ -402,4 +403,3 @@ class Post(db.Model):
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
-
