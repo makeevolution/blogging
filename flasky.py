@@ -1,7 +1,10 @@
 # This is the entry point to starting the whole app
 
 import os
+import re
 import sys
+
+import click
 
 # Coverage output not possible in debug mode, since COV.start() below starts a different
 # thread that actually runs the tests. Check if debug mode is used using sys.gettrace() output.
@@ -34,7 +37,7 @@ if (sys.gettrace() is None):
 from app import create_app, db
 from app.models import Permission, User, Role, Follow, Post
 from app.factories import GenericUser, ModeratorUser, AdminUser
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 from config import config
 
 # Create an instance of an application using a configuration in env var
@@ -72,6 +75,32 @@ def test():
         print('HTML version: file://%s/index.html' % covdir)
         COV.erase()
 
+@app.cli.command()
+def deploy():
+    """Run deployment"""
+    # Alembic to migrate the new database to latest version
+    # upgrade()
+    # Create user roles in the new database
+    Role.create_roles()
+
+# Create a new database based on current model of db
+# Similar to flask db init, but make our own so we don't depend on that framework!
+@app.cli.command("createdatabase")
+@click.argument("dbname", required = True)
+def createdatabase(**kwargs):
+    from sqlalchemy import create_engine
+    engine = app.extensions["migrate"].db.engine
+    engineForNewDB = re.findall("(?<=\()(.*)(?=\\\)", engine.__repr__())[0] + "\\" + kwargs["dbname"] + ".sqlite"
+    print(engineForNewDB)
+    engine = create_engine(engineForNewDB)
+    from alembic.config import Config
+    from alembic import command
+
+    app.extensions["migrate"].db.metadata.create_all(engine)
+    folder = f"{os.getcwd()}/migrations{kwargs.get('dbname')}"
+    alembic_cfg = Config(f"{folder}/alembic.ini", attributes = {"sqlalchemy.url": str(engineForNewDB)})
+    alembic_cfg.set_main_option("sqlalchemy.url", str(engineForNewDB))
+    command.init(alembic_cfg, directory = folder)
 
 if __name__=="__main__":
     app.run(port=5000)
