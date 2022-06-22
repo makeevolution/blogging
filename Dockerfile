@@ -1,7 +1,7 @@
 # Set base image
 FROM ubuntu:20.04
 RUN apt-get -y upgrade && apt-get -y update && apt-get -y install python3.9 && apt-get -y install sudo
-RUN apt -y install python3.9-venv python3-wheel python3.9-dev build-essential vim
+RUN apt -y install python3.9-venv python3-wheel vim
 
 ENV FLASK_APP flasky.py
 ENV FLASK_CONFIG docker

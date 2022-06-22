@@ -79,9 +79,9 @@ def test():
 def deploy():
     """Run deployment"""
     # Alembic to migrate the new database to latest version
-    # upgrade()
+    upgrade()
     # Create user roles in the new database
-    Role.create_roles()
+    Role.insert_roles()
 
 # Create a new database based on current model of db
 # Similar to flask db init, but make our own so we don't depend on that framework!

@@ -11,7 +11,7 @@ from config import Config
 
 # revision identifiers, used by Alembic.
 revision = '98a6a60f6c4d'
-down_revision = '1b24ccdf0755'
+down_revision = 'd0608c6ee42c'
 branch_labels = None
 depends_on = None
 
