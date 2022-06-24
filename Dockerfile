@@ -29,4 +29,5 @@ COPY flasky.py config.py boot.sh ./
 # run-time configuration
 # Map port to host machine
 EXPOSE 5000
-ENTRYPOINT ["sh","./boot.sh"]
+# Use bash to run the shell file, so the [[]] syntax in boot.sh is recognized!
+ENTRYPOINT ["bash","./boot.sh"]

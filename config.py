@@ -51,6 +51,8 @@ class CustomdbConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'testnew.sqlite')
 
 class DockerConfig(ProductionConfig):
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'testnew.sqlite')
+
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
