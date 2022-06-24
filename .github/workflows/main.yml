@@ -49,7 +49,7 @@ jobs:
       - name: Log in to DO Container Registry 
         run: doctl registry login --expiry-seconds 600
       - name: Tag image 
-      - run:
+        run:
           docker tag flasky_flasky \
           registry.digitalocean.com/my-sample-registry/my-sample-page:${{github.event.inputs.version }}
       - name: Push image to DO Container Registry 
