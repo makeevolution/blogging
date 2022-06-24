@@ -42,9 +42,15 @@ jobs:
           cat .env
       - name: build the docker image for the flasky service, keep the mysql service intact
         run: docker-compose build flasky
-      - uses: actions/download-artifact@v3
+      - name: Install doctl 
+        uses: digitalocean/action-doctl@v2
         with:
-          name: my-artifact
-    
-      - name: Display structure of downloaded files
-        run: ls -R
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Log in to DO Container Registry 
+        run: doctl registry login --expiry-seconds 600
+      - name: Tag image 
+      - run:
+          docker tag flasky_flasky \
+          registry.digitalocean.com/my-sample-registry/my-sample-page:${{github.event.inputs.version }}
+      - name: Push image to DO Container Registry 
+        run: docker push registry.digitalocean.com/my-sample-registry/my-sample-page:${{ github.event.inputs.version }}
