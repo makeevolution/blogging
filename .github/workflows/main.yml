@@ -16,6 +16,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
@@ -25,5 +26,19 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+      - name: create the required env variable files from the secrets
+        run: |
+          touch .env-flasky
+          touch .env-mysql
+          echo FLASK_APP=${{ secrets.FLASK_APP }} >> .env-flasky
+          echo FLASK_CONFIG=${{ secrets.FLASK_CONFIG }} >> .env-flasky
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env-flasky
+          echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env-flasky
+          echo MYSQL_RANDOM_ROOT_PASSWORD=${{ secrets.MYSQL_RANDOM_ROOT_PASSWORD }} >> .env-mysql
+          echo MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} >> .env-mysql
+          echo MYSQL_USER=${{ secrets.MYSQL_USER }} >> .env-mysql
+          echo MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} >> .env-mysql
+          echo API_KEY=${{ secrets.API_KEY }} >> .env
+          cat .env
       - name: build the docker image for the flasky service, keep the mysql service intact
         run: docker-compose build flasky
