@@ -50,7 +50,6 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       - name: Tag image 
         run:
-          docker tag flasky_flasky \
-          registry.digitalocean.com/aldoregistry/blogging/latest:${{github.event.inputs.version }}
+          docker tag flasky_flasky registry.digitalocean.com/aldoregistry/blogging:${{github.event.inputs.version }}
       - name: Push image to DO Container Registry 
-        run: docker push registry.digitalocean.com/aldoregistry/blogging/latest:${{ github.event.inputs.version }}
+        run: docker push registry.digitalocean.com/aldoregistry/blogging:${{ github.event.inputs.version }}
