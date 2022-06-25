@@ -7,4 +7,4 @@
 - To execute commands in ```mysql``` service, use ```docker exec flasky_mysql_run_b34ccf7846ad mysql --user=aldo --password=mypaSsAL -e 'show databases;'```, where ```-e``` switch is execute command
 - To use normal ```mysql``` command to talk to the ```mysql``` service, use ```mysql -uroot -p123 -h 127.0.0.1 -P5423```
 
-- Add env FLASK_CONFIG to the flask app docker service and edit the mysql 
+- Add env FLASK_CONFIG to the flask app docker service and edit the mysql

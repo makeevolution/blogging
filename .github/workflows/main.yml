@@ -51,5 +51,7 @@ jobs:
       - name: Tag image 
         run:
           docker tag blogging/app registry.digitalocean.com/mydigitalocean/blogging
+      - name: Remove all old images
+        run: if [ ! -z "$(doctl registry repository list | grep "$(echo blogging/app)")" ]; then doctl registry repository delete-manifest $(echo blogging/app) $(doctl registry repository list-tags $(echoblogging/app ) | grep -o "sha.*") --force; else echo "No repository"; fi
       - name: Push image to DO Container Registry 
         run: docker push registry.digitalocean.com/mydigitalocean/blogging
