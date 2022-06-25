@@ -50,6 +50,6 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       - name: Tag image 
         run:
-          docker tag flasky_flasky registry.digitalocean.com/mydigitalocean/blogging
+          docker tag blogging/app registry.digitalocean.com/mydigitalocean/blogging
       - name: Push image to DO Container Registry 
         run: docker push registry.digitalocean.com/mydigitalocean/blogging
