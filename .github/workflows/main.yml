@@ -50,8 +50,11 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       - name: Tag image 
         run:
+          # The image is tagged with registry.digitalocean.com/mydigitalocean/blogging 
+          # With this set up, the registry will have a repository named blogging/we will refer to the blogging repository if it exists
           docker tag blogging/app registry.digitalocean.com/mydigitalocean/blogging
       - name: Remove all old images
-        run: if [ ! -z "$(doctl registry repository list | grep "$(echo blogging/app)")" ]; then doctl registry repository delete-manifest $(echo blogging/app) $(doctl registry repository list-tags $(echoblogging/app ) | grep -o "sha.*") --force; else echo "No repository"; fi
-      - name: Push image to DO Container Registry 
+        run: if [ ! -z "$(doctl registry repository list | grep "$(echo blogging)")" ]; then doctl registry repository delete-manifest $(echo blogging) $(doctl registry repository list-tags $(echo blogging) | grep -o "sha.*") --force; else echo "Repository doesn't exist in DO, a new one is now created with name blogging"; fi
+      - name: Push image to DO Container Registry
+        # We push the using the tag instead of the image name
         run: docker push registry.digitalocean.com/mydigitalocean/blogging
