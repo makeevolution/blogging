@@ -15,5 +15,5 @@ services: # Each subkey creates a Docker container (i.e. service)
     restart: always
     ports:
       - "5423:3306"
-    volume: /home/aldo/bloggingDB/data:/var/lib/mysql
+    volumes: /home/aldo/bloggingDB/data:/var/lib/mysql
   # The links subkey ensures mysql will start first before flasky
