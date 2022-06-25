@@ -8,6 +8,7 @@ services: # Each subkey creates a Docker container (i.e. service)
     links:
       - mysql:mysql-server
     restart: always
+    image: blogging/app
   mysql:
     image: "mysql/mysql-server:5.7" # Download and use mysql image from Docker website
     env_file: .env-mysql
