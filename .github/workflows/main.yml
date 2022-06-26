@@ -54,7 +54,7 @@ jobs:
           # With this set up, the registry will have a repository named blogging/we will refer to the blogging repository if it exists
           docker tag blogging/app registry.digitalocean.com/mydigitalocean/blogging
       - name: Remove existing manifest in the repository
-        run:|
+        run: |
           existingManifest=$(doctl registry repository list-manifests blogging | awk 'FNR == 2 {print $1}')
           if [ -z "$existingManifest" ]; then echo "Either manifest or repository does not exist in registry, creating new one"; else doctl registry repository delete-manifest blogging "$existingManifest"; fi      
       - name: Push image to DO Container Registry
