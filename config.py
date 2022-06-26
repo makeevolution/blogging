@@ -59,7 +59,7 @@ class DockerConfig(ProductionConfig):
 
         import logging
         from logging import StreamHandler
-        # Create a handler that logs all logging to stderr.
+        # Create handler that logs all logging to stderr.
         # Docker will expose all logging to stderr through docker logs command.
         file_handler = StreamHandler()
         file_handler.setLevel(logging.INFO)
