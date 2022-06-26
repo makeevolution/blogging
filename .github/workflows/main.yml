@@ -51,12 +51,20 @@ jobs:
       - name: Tag image 
         run:
           # The image is tagged with registry.digitalocean.com/mydigitalocean/blogging 
-          # With this set up, the registry will have a repository named blogging/we will refer to the blogging repository if it exists
-          docker tag blogging/app registry.digitalocean.com/mydigitalocean/blogging
-      - name: Remove existing manifest in the repository
+          # With this setup, the registry will have a repository named blogging/we will refer to the blogging repository if it exists
+          docker tag blogging/app aldosebastian/blogging
+      - name: Remove existing manifest in the repository in the registry
+          # Each registry contains a repository, corresponding to the argument after the registry name in the tag above.
+          # Each repository contains image(s) pushed to the repository. Each image is distinguished by its digest or tag.
+          # Tags can be empty. A digest will be generated automatically by the registry to differentiate each image.
+          # Tags act as a label, and you can apply multiple tags to an image for versioning purposes.
+          # More info below:
+          # https://cloud.google.com/container-registry/docs/overview#versions_of_images_within_a_registry
+          # In the run step below, since we use free version of DigitalOcean registry, we only can have one image in a repo.
+          # So need to delete the existing image in the repository (by specifying the digest), if the image exist.
         run: |
           existingManifest=$(doctl registry repository list-manifests blogging | awk 'FNR == 2 {print $1}')
           if [ -z "$existingManifest" ]; then echo "Either manifest or repository does not exist in registry, creating new one"; else doctl registry repository delete-manifest -f blogging "$existingManifest"; fi      
       - name: Push image to DO Container Registry
         # We push the using the tag instead of the image name
-        run: docker push registry.digitalocean.com/mydigitalocean/blogging
+        run: docker push aldosebastian/blogging
