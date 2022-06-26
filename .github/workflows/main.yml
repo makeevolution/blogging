@@ -49,7 +49,7 @@ jobs:
       - name: Log in to DO Container Registry 
         run: doctl registry login --expiry-seconds 600
       - name: Log in to docker hub
-        run: docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: docker login -u aldosebastian -p 25803conan
       - name: Tag image 
         run:
           # The image is tagged with registry.digitalocean.com/mydigitalocean/blogging 
