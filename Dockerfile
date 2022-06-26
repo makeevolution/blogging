@@ -23,7 +23,7 @@ RUN sudo venv/bin/pip install -r requirements/prod.txt
 
 COPY app app
 COPY migrations migrations
-RUN sudo chmod 757 app/
+RUN sudo chmod 777 -R .
 COPY flasky.py config.py boot.sh ./
 
 # run-time configuration
