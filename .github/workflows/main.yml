@@ -48,6 +48,8 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       - name: Log in to DO Container Registry 
         run: doctl registry login --expiry-seconds 600
+      - name: Log in to docker hub
+        run: docker login -u makesomething -p ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Tag image 
         run:
           # The image is tagged with registry.digitalocean.com/mydigitalocean/blogging 
