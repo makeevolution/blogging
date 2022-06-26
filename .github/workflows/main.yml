@@ -48,7 +48,7 @@ jobs:
         run:
           # The image is tagged with aldosebastian/blogging 
           # With this setup, the registry will have a repository named blogging/we will refer to the blogging repository if it exists
-          docker tag blogging/app aldosebastian/blogging:testnewtag    
+          docker tag blogging/app aldosebastian/blogging:latest    
       - name: Push image to DO Container Registry
         # We push the using the tag instead of the image name
-        run: docker push aldosebastian/blogging:testnewtag
+        run: docker push aldosebastian/blogging:latest
