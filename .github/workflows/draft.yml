@@ -8,8 +8,7 @@
         with:
           host: 64.225.68.141
           username: root 
-          key: ${{ secrets.SSHKEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY_6422568141 }}
           envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA
           script: |
             # Login to registry
