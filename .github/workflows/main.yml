@@ -43,7 +43,7 @@ jobs:
       - name: build the docker image for the flasky service, keep the mysql service intact
         run: docker-compose build flasky
       - name: Log in to docker hub
-        run: docker login -u aldosebastian -p {{ $secrets.DOCKERHUB_PASSWORD }}
+        run: docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Tag image 
         run:
           # The image is tagged with aldosebastian/blogging 
