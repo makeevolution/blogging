@@ -57,11 +57,10 @@ jobs:
     
     steps:
       - name: Deploy to Digital Ocean droplet via SSH action
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: 64.225.68.141
           username: root
-          password: ${{ secrets.PASSWORD_6422568141 }}
           key: ${{ secrets.SSHKEY_6422568141 }}
           script: |
             # Move to directory where the docker-compose.yml is
