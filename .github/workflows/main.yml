@@ -82,7 +82,7 @@ jobs:
         # The below actually will start both the flasky and its db containers, but if a db
         # container already is running, it will say it is still up to date
         run: >
-            ssh digitaloceanserver " &&
+            ssh digitaloceanserver "
             cd /home/aldo/ &&
             docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }} &&
             docker stop blogging_service && docker rm blogging_service &&
