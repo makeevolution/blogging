@@ -56,15 +56,23 @@ jobs:
     needs: build_and_push
     
     steps:
-      - name: setup tmate session
-        uses: mxschmitt/action-tmate@v3
-      - name: Deploy to Digital Ocean droplet via SSH action
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: 64.225.68.141
-          username: root
-          key: ${{ secrets.SSHKEY_6422568141 }}
-          script: |
+      - name: setup for ssh
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/digitaloceanserver.key
+          chmod 600 ~/.ssh/digitaloceanserver.key
+          cat >>~/.ssh/config <<END
+          Host digitaloceanserver
+            HostName $SSH_HOST
+            User root
+            IdentityFile ~/.ssh/digitaloceanserver.key
+            StrictHostKeyChecking no
+          END
+        env:
+          SSH_KEY: ${{ secrets.SSHKEY_6422568141 }}
+          SSH_HOST: ${{ secrets.PASSWORD_6422568141 }}
+      - name: Stop the server
+        run: ssh digitaloceanserver "
             # Move to directory where the docker-compose.yml is
             cd /home/aldo/
             # Login to dockerhub registry
@@ -80,3 +88,4 @@ jobs:
             # The below actually will start both the flasky and its db containers, but if a db
             # container already is running, it will say it is still up to date
             docker-compose up -d
+            "
