@@ -1,25 +1,13 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CD
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "prod" branch
   push:
     branches: 
       - prod
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-
-  # This workflow contains a single job called "build"
-  build_and_push:
-    # The type of runner that the job will run on
+  build_container_and_push_to_docker_hub_registry:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
@@ -31,10 +19,6 @@ jobs:
           echo FLASK_CONFIG=${{ secrets.FLASK_CONFIG }} >> .env-flasky
           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env-flasky
           echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env-flasky
-          echo MYSQL_RANDOM_ROOT_PASSWORD=${{ secrets.MYSQL_RANDOM_ROOT_PASSWORD }} >> .env-mysql
-          echo MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} >> .env-mysql
-          echo MYSQL_USER=${{ secrets.MYSQL_USER }} >> .env-mysql
-          echo MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} >> .env-mysql
           echo API_KEY=${{ secrets.API_KEY }} >> .env
           cat .env
           cat .env-flasky
@@ -42,21 +26,21 @@ jobs:
       - name: build the docker image for the flasky service, keep the mysql service intact
         run: docker-compose build flasky
       - name: Log in to docker hub
-        run: docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Tag image
         run:
-          # Usage is docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
-          # With this setup, the image, which was untagged, is now given the "latest" tag
+          # Usage of tag command is: docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+          # With this setup, the image, which was built untagged, is now given the "latest" tag
           docker tag aldosebastian/blogging aldosebastian/blogging:latest
-      - name: Push image to DO Container Registry
-        # We push the using the tag instead of the image name
+      - name: Push image to dockerhub
+        # We have push the using the tag instead of the image name; it's just the way things are
         run: docker push aldosebastian/blogging:latest
-  deploy:
+  # After pushing, we go to the server, download the image and run it there
+  deploy_service_on_server:
     runs-on: ubuntu-latest
-    needs: build_and_push
-    
+    needs: build_container_and_push_to_docker_hub_registry
     steps:
-      - name: Setup for ssh
+      - name: SSH to the server
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_KEY" > ~/.ssh/digitaloceanserver.key
@@ -72,21 +56,23 @@ jobs:
           SSH_KEY: ${{ secrets.SSHKEY_6422568141 }}
           SSH_HOST: 64.225.68.141
       - name: Run the Docker container for the blogging service
-        # Move to directory where the docker-compose.yml is
+        # Steps Explanation:
+        # Move to directory where the docker-compose.yml and env_var file is
         # Login to dockerhub registry
-        # Stop and remove any flasky service container 
-        # Delete the image that ran the deleted container (i.e. the one with the tag latest), since now this image is outdated 
-        # (this is to save space, if you want you can skip this. If skipped, after docker pull the old image will have tag None)
+        # Stop and remove any existing blogging service container, check if service is running using --filter. The || works like this example:
+          # ls | grep . && echo 'files found' || echo 'files not found'
+        # Delete the image that ran the deleted container (i.e. the one with the tag latest), since now this image is outdated. Also check if it exists just for completeness.
+        # (the above is done to save space, if you want you can skip this. If skipped, after docker pull the old image will have tag None, and can fill up space over time)
         # Pull the latest image
         # Run the flasky service container using the docker-compose.yml in the server.
-        # The below actually will start both the flasky and its db containers, but if a db
-        # container already is running, it will say it is still up to date
+        # The yml file will actually start both the flasky and its db containers, but if a db
+        # container already is running, the command will say it is up to date and won't touch it.
         run: >
             ssh digitaloceanserver "
             cd /home/aldo/ &&
             docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }} &&
-            docker stop blogging_service && docker rm blogging_service &&
-            docker rmi aldosebastian/blogging:latest &&
+            docker ps -q --filter "name=blogging_service" | grep -q . && echo Stopping blogging_service container... && docker stop blogging_service && docker rm blogging_service || echo INFO: No existing blogging_service container running
+            docker images aldosebastian/blogging:latest | awk "NR==2" | grep -q . && echo Deleting blogging_service image && docker rmi aldosebastian/blogging:latest || echo No current image for blogging service found
             docker pull aldosebastian/blogging &&
             docker-compose up -d
             "
