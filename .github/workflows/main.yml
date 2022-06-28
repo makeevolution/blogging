@@ -72,21 +72,21 @@ jobs:
           SSH_KEY: ${{ secrets.SSHKEY_6422568141 }}
           SSH_HOST: 64.225.68.141
       - name: Stop the server
+        # Move to directory where the docker-compose.yml is
+        # Login to dockerhub registry
+        # Stop and remove any flasky service container 
+        # Delete the image that ran the deleted container (i.e. the one with the tag latest), since now this image is outdated 
+        # (this is to save space, if you want you can skip this. If skipped, after docker pull the old image will have tag None)
+        # Pull the latest image
+        # Run the flasky service container using the docker-compose.yml in the server.
+        # The below actually will start both the flasky and its db containers, but if a db
+        # container already is running, it will say it is still up to date
         run: >
             ssh digitaloceanserver " &&
-            # Move to directory where the docker-compose.yml is
             cd /home/aldo/ &&
-            # Login to dockerhub registry
             docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }} &&
-            # Stop and remove any flasky service container 
             docker stop blogging_service && docker rm blogging_service &&
-            # Delete the image that ran the deleted container (i.e. the one with the tag latest), since now this image is outdated 
-            # (this is to save space, if you want you can skip this. If skipped, after docker pull the old image will have tag None)
             docker rmi aldosebastian/blogging:latest &&
-            # Pull the latest image
             docker pull aldosebastian/blogging &&
-            # Run the flasky service container using the docker-compose.yml in the server.
-            # The below actually will start both the flasky and its db containers, but if a db
-            # container already is running, it will say it is still up to date
             docker-compose up -d
             "
