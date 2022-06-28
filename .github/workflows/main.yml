@@ -56,7 +56,7 @@ jobs:
     needs: build_and_push
     
     steps:
-      - name: setup for ssh
+      - name: Setup for ssh
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_KEY" > ~/.ssh/digitaloceanserver.key
@@ -71,7 +71,7 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSHKEY_6422568141 }}
           SSH_HOST: 64.225.68.141
-      - name: Stop the server
+      - name: Run the Docker container for the blogging service
         # Move to directory where the docker-compose.yml is
         # Login to dockerhub registry
         # Stop and remove any flasky service container 
