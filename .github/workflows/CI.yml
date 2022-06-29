@@ -18,8 +18,8 @@ jobs:
           echo FLASK_APP=flasky.py
           echo FLASK_CONFIG=testing
           python3.9 -m venv venv
-          . venv/bin/activate
       - name: run tests
         run: |
-          sudo python3.9 -m flask test
+          . venv/bin/activate
+          python3.9 -m flask test
   
