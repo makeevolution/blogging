@@ -1,10 +1,5 @@
 name: CD
 
-on:
-  push:
-    branches: 
-      - prod
-
 jobs:
   build_container_and_push_to_docker_hub_registry:
     runs-on: ubuntu-latest
