@@ -21,5 +21,5 @@ jobs:
       - name: run tests
         run: |
           . venv/bin/activate
-          python3.9 -m flask test
+          python -m flask test
   
