@@ -18,8 +18,10 @@ jobs:
           echo FLASK_APP=flasky.py
           echo FLASK_CONFIG=testing
           python3.9 -m venv venv
+          . venv/bin/activate
+          python -m pip install -r requirements/common.txt
       - name: run tests
         run: |
-          . venv/bin/activate
+          
           python -m flask test
   
