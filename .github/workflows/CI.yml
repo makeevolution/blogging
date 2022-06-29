@@ -19,8 +19,8 @@ jobs:
           export FLASK_CONFIG=testing
           python3.9 -m venv venv
           python3.9 -m pip install -r requirements/common.txt
-      - name: run tests
-        run: |
           . venv/bin/activate
           python -m flask test
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
   
