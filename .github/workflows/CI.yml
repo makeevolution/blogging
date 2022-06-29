@@ -20,8 +20,9 @@ jobs:
           python3.9 -m venv venv
           . venv/bin/activate
           python -m pip install -r requirements/common.txt
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: run tests
         run: |
-          
           python -m flask test
   
