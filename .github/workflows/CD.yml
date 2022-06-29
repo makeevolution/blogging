@@ -67,8 +67,8 @@ jobs:
             ssh digitaloceanserver "
             cd /home/aldo/ &&
             docker login -u aldosebastian -p ${{ secrets.DOCKERHUB_PASSWORD }} &&
-            docker ps -q --filter "name=blogging_service" | grep -q . && echo Stopping blogging_service container... && docker stop blogging_service && docker rm blogging_service || echo INFO: No existing blogging_service container running
-            docker images aldosebastian/blogging:latest | awk "NR==2" | grep -q . && echo Deleting blogging_service image && docker rmi aldosebastian/blogging:latest || echo No current image for blogging service found
+            docker ps -q --filter "name=blogging_service" | grep -q . && echo Stopping blogging_service container... && docker stop blogging_service && echo Removing blogging_service container... && docker rm blogging_service || echo -e 'INFO: No existing blogging_service container running\nCreating new service...' &&
+            docker images aldosebastian/blogging:latest | awk "NR==2" | grep -q . && echo Deleting blogging_service image && docker rmi aldosebastian/blogging:latest || echo -e 'No local image for blogging service found, pulling new from dockerhub\n' &&
             docker pull aldosebastian/blogging &&
             docker-compose up -d
             "

@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: 
+      - prod
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      - name: setup the testing server with required packages
+        run: |
+          apt-get -y upgrade && apt-get -y update && apt-get -y install python3.9
+          apt -y install python3.9-venv python3-wheel vim
+          echo FLASK_APP=flasky.py
+          echo FLASK_CONFIG=testing
+          python3.9 -m venv venv
+          . venv/bin/activate
+      - name: run tests
+        run: |
+          python3.9 -m flask test
+  
