@@ -1,9 +1,10 @@
 name: CD
 
 on:
-  push:
-    branches: 
-      - test
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
 
 jobs:
   build_container_and_push_to_docker_hub_registry:

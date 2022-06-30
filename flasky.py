@@ -63,7 +63,7 @@ COV = None
 def test():
     import unittest
     tests = unittest.TestLoader().discover('tests')
-    unittest.TextTestRunner(verbosity=2).run(tests)
+    testResult = unittest.TextTestRunner(verbosity=2).run(tests)
     if COV:
         COV.stop()
         COV.save()
@@ -74,7 +74,11 @@ def test():
         COV.html_report(directory=covdir)
         print('HTML version: file://%s/index.html' % covdir)
         COV.erase()
-
+    if testResult.wasSuccessful():
+        exit(0)
+    else:
+        exit(1)
+    
 @app.cli.command()
 def deploy():
     """Run deployment"""
