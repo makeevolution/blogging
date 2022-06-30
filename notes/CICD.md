@@ -1,8 +1,7 @@
 # Notes on CICD
 
-## CD
+## About deploy_service_on_server:
 
-- The CD is run in CD.yml
 - It pulls the blogging docker image from dockerhub, build and runs it there
 - Since the image also needs to talk to a mysql server docker image, the mysql docker image needs to be built with the blogging image. This is done by the docker-compose.yml, which takes in secrets from .env-flasky and .env-mysql
 - Therefore, these files need to be copied manually to the server. Copy it to the location specified in the CD.yml. Remember to update it in the server if changed

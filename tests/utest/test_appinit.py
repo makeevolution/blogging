@@ -3,7 +3,7 @@ from flask import current_app
 from app import create_app, db
 
 
-class BasicsTestCase(unittest.TestCase):
+class AppInitTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')
         # Get the app context (see page 18 of book for more info)

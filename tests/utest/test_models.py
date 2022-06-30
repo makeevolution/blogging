@@ -4,7 +4,7 @@ import unittest
 from app import db, create_app
 from faker import Faker
 
-class UserModelTestCase(unittest.TestCase):
+class UserModelsTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')
         self.app_context = self.app.app_context()

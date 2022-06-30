@@ -1,17 +1,9 @@
-import ast
-from dataclasses import dataclass
 from functools import wraps
-from multiprocessing.sharedctypes import Value
-from string import ascii_letters
 import unittest, logging, sys
 
-from flask import url_for
-from sqlalchemy import true
 from app import create_app, db
-from app.main.views import follow
 from app.models import *
 from app.factories.user_factory import user_factory
-from tests.utest.main.conftest import log_in
 
 logging.basicConfig( stream=sys.stdout )
 logging.getLogger(__name__).setLevel( logging.DEBUG )
